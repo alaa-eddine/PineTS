@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>PineTS - a port of Squeeze Momentum Indicator [LazyBear]</title>
+    <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <style>
+        body {
+            background-color: #0f172a;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: #cbd5e1;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        #container {
+            width: 100%;
+            max-width: 90vw;
+            margin: 0 auto;
+            padding: 1.5rem;
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+            min-height: auto;
+            transition: all 0.3s ease;
+        }
+
+        @media (min-width: 1200px) {
+            #container {
+                max-width: 1400px;
+                padding: 2rem;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            #container {
+                max-width: 95vw;
+                padding: 1.25rem;
+                border-radius: 6px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #container {
+                max-width: 100vw;
+                padding: 1rem;
+                border-radius: 0;
+                border-left: none;
+                border-right: none;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #container {
+                padding: 0.75rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+                margin-bottom: 1.5rem;
+            }
+        }
+
+        h1 {
+            color: #5eead4;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(45deg, #5eead4, #2dd4bf);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .chart-container {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        a {
+            color: #5eead4;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+            color: #2dd4bf;
+        }
+
+        #chart1 {
+
+            position: relative;
+            z-index: 1;
+        }
+
+        #chart2 {
+
+            position: relative;
+            z-index: 1;
+        }
+
+        table {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+        }
+
+        td {
+            vertical-align: top;
+            padding: 0px;
+        }
+
+        td:first-child,
+        td:last-child {
+            max-width: 100%;
+            width: 100%;
+        }
+
+        pre {
+            max-width: 100%;
+            overflow-x: auto;
+            white-space: pre;
+            margin: 0;
+            padding: 0.5rem;
+            background-color: #1a2035;
+            border-radius: 6px;
+            border: 1px solid #2d3748;
+        }
+
+        pre code {
+            display: block;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+        <h1>A Port of Squeeze Momentum Indicator [LazyBear]</h1>
+        <div class="chart-container">
+            <div id="main-chart"></div>
+            <div id="indicator-chart"></div>
+            <div id="vertical-line"></div>
+        </div>
+        <hr />
+
+        <h2>Code</h2>
+        <p>
+            PineTS makes it easy to port your Pine Script code to JavaScript.<br />
+            See the example below, this is the "Squeeze Momentum Indicator" indicator converted from Pine Script to
+            PineTS.<br />
+            you can barely tell the difference if you ignore JS variables declarations syntax (const/let/...etc)<br />
+        </p>
+        <div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Pine Script v5 code</th>
+                        <th style="width:20px">&nbsp;</th>
+                        <th>PineTS Ported code</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <pre><code class="code language-javascript">
+length = input(20, title='BB Length')
+mult = input(2.0, title='BB MultFactor')
+lengthKC = input(20, title='KC Length')
+multKC = input(1.5, title='KC MultFactor')
+
+useTrueRange = input(true, title='Use TrueRange (KC)')
+
+// Calculate BB
+source = close
+basis = ta.sma(source, length)
+dev = multKC * ta.stdev(source, length)
+upperBB = basis + dev
+lowerBB = basis - dev
+
+// Calculate KC
+ma = ta.sma(source, lengthKC)
+range_1 = useTrueRange ? ta.tr : high - low
+rangema = ta.sma(range_1, lengthKC)
+upperKC = ma + rangema * multKC
+lowerKC = ma - rangema * multKC
+
+sqzOn = lowerBB > lowerKC and upperBB < upperKC
+sqzOff = lowerBB < lowerKC and upperBB > upperKC
+noSqz = sqzOn == false and sqzOff == false
+
+val = ta.linreg(source - math.avg(math.avg(ta.highest(high, lengthKC), ta.lowest(low, lengthKC)), ta.sma(close, lengthKC)), lengthKC, 0)
+
+iff_1 = val > nz(val[1]) ? color.lime : color.green
+iff_2 = val < nz(val[1]) ? color.red : color.maroon
+bcolor = val > 0 ? iff_1 : iff_2
+scolor = noSqz ? color.blue : sqzOn ? color.black : color.gray
+plot(val, color=bcolor, style=plot.style_histogram, linewidth=4)
+plot(0, color=scolor, style=plot.style_cross, linewidth=2)
+                            </code></pre>
+                        </td>
+                        <td style="width:20px"> </td>
+                        <td>
+                            <pre><code class="code language-javascript">
+const length = input.int(20, "BB Length");
+const mult = input.float(2.0, "BB MultFactor");
+const lengthKC = input.int(20, "KC Length");
+const multKC = input.float(1.5, "KC MultFactor");
+
+const useTrueRange = input.bool(true, "Use TrueRange (KC)");
+
+// Calculate BB
+let source = close;
+const basis = ta.sma(source, length);
+const dev = multKC * ta.stdev(source, length);
+const upperBB = basis + dev;
+const lowerBB = basis - dev;
+
+// Calculate KC
+const ma = ta.sma(source, lengthKC);
+const range_1 = useTrueRange ? ta.tr : high - low;
+const rangema = ta.sma(range_1, lengthKC);
+const upperKC = ma + rangema * multKC;
+const lowerKC = ma - rangema * multKC;
+
+const sqzOn = lowerBB > lowerKC && upperBB < upperKC;
+const sqzOff = lowerBB < lowerKC && upperBB > upperKC;
+const noSqz = sqzOn == false && sqzOff == false;
+
+const val = ta.linreg(source - math.avg(math.avg(ta.highest(high, lengthKC), ta.lowest(low, lengthKC)), ta.sma(close, lengthKC)), lengthKC, 0);
+
+const iff_1 = val > nz(val[1]) ? color.lime : color.green;
+const iff_2 = val < nz(val[1]) ? color.red : color.maroon;
+const bcolor = val > 0 ? iff_1 : iff_2;
+const scolor = noSqz ? color.blue : sqzOn ? color.black : color.gray;
+plot(val, "Momentum", { color: bcolor, style: "histogram", linewidth: 4 });
+plot(0, "Cross", { color: scolor, style: "cross", linewidth: 2 });                                
+                            </code></pre>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h2>Usage</h2>
+        <p>
+            Once you port the code, you can use PineTS to run it, plot directives returns objects with all required data
+            to render the charts, This is how we rendered the indicator above.
+        </p>
+        <pre><code class="code language-javascript">
+const pineTS = new PineTS( PineTS.Provider.Binance,
+    'BTCUSDT', //the tickerId
+    'W', //the timeframe in Pine Script format
+    500, //the number of periods to query
+  );
+
+  const { plots } = await pineTS.run((context) => {
+    const { close, high, low } = context.data; //import OHLCV data
+    const { plot, plotchar, nz, color } = context.core; //import core functions
+    const ta = context.ta; //import technical analysis namespace
+    const math = context.math; //import math namespace
+    const input = context.input; //import input namespace
+    
+
+    //below is the converted code from Pine Script to PineTS
+    const length = input.int(20, "BB Length");
+    const mult = input.float(2.0, "BB MultFactor");
+    const lengthKC = input.int(20, "KC Length");
+    const multKC = input.float(1.5, "KC MultFactor");
+
+    const useTrueRange = input.bool(true, "Use TrueRange (KC)");
+
+    // Calculate BB
+    let source = close;
+    const basis = ta.sma(source, length);
+    const dev = multKC * ta.stdev(source, length);
+    const upperBB = basis + dev;
+    const lowerBB = basis - dev;
+
+    // Calculate KC
+    const ma = ta.sma(source, lengthKC);
+    const range_1 = useTrueRange ? ta.tr : high - low;
+    const rangema = ta.sma(range_1, lengthKC);
+    const upperKC = ma + rangema * multKC;
+    const lowerKC = ma - rangema * multKC;
+
+    const sqzOn = lowerBB > lowerKC && upperBB < upperKC;
+    const sqzOff = lowerBB < lowerKC && upperBB > upperKC;
+    const noSqz = sqzOn == false && sqzOff == false;
+
+    const val = ta.linreg(source - math.avg(math.avg(ta.highest(high, lengthKC), ta.lowest(low, lengthKC)), ta.sma(close, lengthKC)), lengthKC, 0);
+
+    const iff_1 = val > nz(val[1]) ? color.lime : color.green;
+    const iff_2 = val < nz(val[1]) ? color.red : color.maroon;
+    const bcolor = val > 0 ? iff_1 : iff_2;
+    const scolor = noSqz ? color.blue : sqzOn ? color.black : color.gray;
+    plot(val, "Momentum", { color: bcolor, style: "histogram", linewidth: 4 });
+    plot(0, "Cross", { color: scolor, style: "cross", linewidth: 2 });
+  });
+
+  console.log(plots);
+        </code></pre>
+
+        <script src="../../js/pinets.min.browser.js"></script>
+        <script src="./SQZMOM.js"></script>
+        <script src="./chart.js"></script>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            document.querySelectorAll('pre code').forEach((el) => {
+                hljs.highlightElement(el);
+            });
+        });
+    </script>
+</body>
+
+</html>
