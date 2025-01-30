@@ -1,0 +1,50 @@
+{
+    "profiles": {
+        "BinanceTestnet": {
+            "connector": "binance",
+            "baseURL": "https://testnet.binance.vision/api/v3",
+            "streamURL": "wss://stream.binance.com:9443/ws",
+            "API_KEY": "mo15UfOfMCiVzP0qkYSpLZT87ieFH8VYpRlmt0N84ijXUyrS61JXuaoW1fcwtI5d",
+            "API_SECRET": "ggvZQxYzQpOrtLT8mtnXexgzIKvR2rbjbRkBin7DzPeK61q9mfo5HUMg8HCPMozx"
+        },
+        "BinanceProd": {
+            "connector": "binance",
+            "baseURL": "https://api.binance.com/api/v3",
+            "streamURL": "wss://stream.binance.com:9443/ws",
+            "API_KEY": "y1rm2JJOq6YRoHu2wyyzGRfAfKiDfUd49spXQlqZjvvgiyc1K2mbTSdKnFP7cGDO",
+            "API_SECRET": "DlGhI58Ts8lzsUK7tdjCaNaGvTPRyuE3FFW5maCB1KBWnY93nSJrSkFyt3o4H35d"
+        },
+        "BinanceSubAccountProdOld": {
+            "connector": "binance",
+            "baseURL": "https://api.binance.com/api/v3",
+            "streamURL": "wss://stream.binance.com:9443/ws",
+            "API_KEY": "rWMZZR48Lv0ijRvWA8p26V0Bs5yKOkEUBqyWXtlpubxLhkBARJJ78eXJUqFG1lFg",
+            "API_SECRET": "peMnDPSyIKEMnajN4YL9c4qAELaIAEzoenzawk1wCBT4LHXFZFFcqlf4GI5kelbJ"
+        },
+        "BinanceSubAccountProd": {
+            "connector": "binance",
+            "baseURL": "https://api.binance.com/api/v3",
+            "streamURL": "wss://stream.binance.com:9443/ws",
+            "API_KEY": "3iyNZb8Qe52uVUnKRr7kn45nRBGl2x6jUfFhYbA0gbr9fto8nPG45w7MjhiDaBL6",
+            "API_SECRET": "ZbJiRL0YmBQQYNXNai8ZXo3QjLPnUfQtMepN6j5aaOWhARxR60fkPZMcY4gB3eoJ"
+        },
+        "BybitTestnet": {
+            "connector": "bybit",
+            "baseURL": "https://api-testnet.bybit.com",
+            "streamURL": "wss://stream-testnet.bybit.com/realtime",
+            "API_KEY": "***",
+            "API_SECRET": "****"
+        }
+    },
+
+    "bot": {
+        "profile": "BinanceTestnet",
+        "serverUrl": "https://api.eu-1.talky.studio/",
+        "dataPath": "D:/PING/Crypto/TradingBot/"
+    },
+    "auth": {
+        "username": "aladdin",
+        "password": "Astalavista45741471574"
+    },
+    "localPath": "D:/PING/Crypto/TradingBot/"
+}

@@ -1,0 +1,31 @@
+{
+    "compilerOptions": {
+        "outDir": "./dist",
+        "module": "ESNext",
+        "target": "ESNext",
+        "moduleResolution": "node",
+        "sourceMap": true,
+        "preserveSymlinks": true,
+        "baseUrl": "./src",
+        "resolveJsonModule": true,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        //"noImplicitAny": false,
+        //"ignoreDeprecations": "5.0",
+        //"suppressImplicitAnyIndexErrors": true,
+        "paths": {
+            "@pinets/index": ["index.ts"],
+            "@pinets/transpiler/*": ["transpiler/*"],
+            "@pinets/namespaces/*": ["namespaces/*"],
+            "@pinets/marketData/*": ["marketData/*"]
+        },
+        "types": ["node"],
+        "allowSyntheticDefaultImports": true,
+
+        "skipLibCheck": true,
+        "typeRoots": ["./node_modules/@types"]
+    },
+    "include": ["src/**/*.ts"],
+
+    "exclude": ["node_modules"]
+}
