@@ -88,14 +88,14 @@ _oo = math.abs(open[1] - close[2]);
 ### Running PineTS Code
 
 ```javascript
-import { PineTS } from 'pinets';
+import { PineTS, Providers } from 'pinets';
 
 // Initialize with market data
-const klines = await getKlines('BTCUSDT', '1d', 100);
-const pineTS = new PineTS(klines);
+
+const pineTS = new PineTS(Providers.Binance, 'BTCUSDT', 'D', 100);
 
 // Run your indicator
-const { result } = pineTS.run((context) => {
+const { result } = await pineTS.run((context) => {
     const ta = context.ta;
     const math = context.math;
     const { close, open } = context.data;
