@@ -1,6 +1,6 @@
 async function loadChartData() {
     try {
-        const data = await PineTS.Provider.Binance.getMarketData('BTCUSDT', 'W', 500);
+        const data = await PineTS.Provider.Binance.getMarketData('BTCUSDT', '240', 300);
         return data;
     } catch (error) {
         console.error('Error loading chart data:', error);
@@ -10,7 +10,7 @@ async function loadChartData() {
 
 async function loadIndicatorData() {
     try {
-        const data = await SQZMOM('BTCUSDT', 'W', 500);
+        const data = await WillVixFix('BTCUSDT', '240', 300);
         console.log(data);
         return data;
     } catch (error) {
@@ -101,12 +101,14 @@ function createMainChart() {
     // Add window resize handler
     function handleResize() {
         const width = mainChartContainer.clientWidth;
+
         charts.forEach((chart) => {
             chart.applyOptions({ width: width });
         });
     }
 
     window.addEventListener('resize', handleResize);
+
     charts.push(mainChart);
 
     return { mainChart, mainSeries };
@@ -123,6 +125,7 @@ function createIndicatorChart() {
     });
 
     charts.push(indicatorChart);
+
     return indicatorChart;
 }
 
@@ -167,7 +170,6 @@ function addIndicator(indicatorChart, plot, overlay = false) {
                 const chart = indicatorChart.addLineSeries({
                     color: plot.options.color,
                     lineWidth: plot.options.linewidth,
-                    title: plot.title,
                     lastValueVisible: true,
                 });
                 // Map the data to include the color from each point's options
@@ -183,7 +185,6 @@ function addIndicator(indicatorChart, plot, overlay = false) {
                 const chart = indicatorChart.addHistogramSeries({
                     color: plot.options.color,
                     lineWidth: plot.options.linewidth,
-                    title: plot.title,
                     lastValueVisible: true,
                 });
                 // Map the data to include the color from each point's options
@@ -200,7 +201,6 @@ function addIndicator(indicatorChart, plot, overlay = false) {
                 const chart = indicatorChart.addLineSeries({
                     position: 'aboveBar',
                     color: plot.options.color,
-                    title: plot.title,
                     linewidth: plot.options.linewidth * 10 || 10,
                     lastValueVisible: true,
                 });

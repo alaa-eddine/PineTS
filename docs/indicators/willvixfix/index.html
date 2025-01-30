@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>PineTS - a port of Squeeze Momentum Indicator [LazyBear]</title>
+    <title>PineTS - a port of Williams Vix Fix Indicator</title>
     <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
@@ -96,6 +96,7 @@
             border-radius: 6px;
             overflow: hidden;
             margin-bottom: 2rem;
+
         }
 
         a {
@@ -159,21 +160,19 @@
 
 <body>
     <div id="container">
-        <h1>A Port of Squeeze Momentum Indicator [LazyBear]</h1>
+        <h1>A Port of Williams Vix Fix Indicator</h1>
 
         <div class="chart-container">
             <div id="main-chart"></div>
             <div id="indicator-chart"></div>
         </div>
-        <p>Find more indicators by LazyBear <a
-                href="https://docs.google.com/document/d/15AGCufJZ8CIUvwFJ9W-IKns88gkWOKBCvByMEvm5MLo/edit?tab=t.0#heading=h.hxxxw8bfvb8j"
-                target="_blank">here</a>, if you find this indicator useful, please support the author.</p>
+
         <hr />
 
         <h2>Code</h2>
         <p>
             PineTS makes it easy to port your Pine Script code to JavaScript.<br />
-            See the example below, this is the "Squeeze Momentum Indicator" indicator converted from Pine Script to
+            See the example below, this is the "Williams Vix Fix Indicator" indicator converted from Pine Script to
             PineTS.<br />
             you can barely tell the difference if you ignore JS variables declarations syntax (const/let/...etc)<br />
         </p>
@@ -190,77 +189,69 @@
                     <tr>
                         <td>
                             <pre><code class="code language-javascript">
-length = input(20, title='BB Length')
-mult = input(2.0, title='BB MultFactor')
-lengthKC = input(20, title='KC Length')
-multKC = input(1.5, title='KC MultFactor')
+pd = input.int(22, title='LookBack Period Standard Deviation High')
+bbl = input.int(20, title='Bolinger Band Length')
+mult = input.float(2.0, minval=1, maxval=5, title='Bollinger Band Standard Devaition Up')
+lb = input.int(50, title='Look Back Period Percentile High')
+ph = input.float(.85, title='Highest Percentile - 0.90=90%, 0.95=95%, 0.99=99%')
+pl = input.float(1.01, title='Lowest Percentile - 1.10=90%, 1.05=95%, 1.01=99%')
+hp = input.bool(true, title='Show High Range - Based on Percentile and LookBack Period?')
+sd = input.bool(true, title='Show Standard Deviation Line?')
 
-useTrueRange = input(true, title='Use TrueRange (KC)')
+wvf = (ta.highest(close, pd) - low) / ta.highest(close, pd) * 100
 
-// Calculate BB
-source = close
-basis = ta.sma(source, length)
-dev = multKC * ta.stdev(source, length)
-upperBB = basis + dev
-lowerBB = basis - dev
+sDev = mult * ta.stdev(wvf, bbl)
+midLine = ta.sma(wvf, bbl)
+lowerBand = midLine - sDev
+upperBand = midLine + sDev
 
-// Calculate KC
-ma = ta.sma(source, lengthKC)
-range_1 = useTrueRange ? ta.tr : high - low
-rangema = ta.sma(range_1, lengthKC)
-upperKC = ma + rangema * multKC
-lowerKC = ma - rangema * multKC
+rangeHigh = ta.highest(wvf, lb) * ph
+rangeLow = ta.lowest(wvf, lb) * pl
 
-sqzOn = lowerBB > lowerKC and upperBB < upperKC
-sqzOff = lowerBB < lowerKC and upperBB > upperKC
-noSqz = sqzOn == false and sqzOff == false
+col = wvf >= upperBand or wvf >= rangeHigh ? color.lime : color.gray
 
-val = ta.linreg(source - math.avg(math.avg(ta.highest(high, lengthKC), ta.lowest(low, lengthKC)), ta.sma(close, lengthKC)), lengthKC, 0)
+RangeHigh = hp and rangeHigh ? rangeHigh : na
+RangeLow = hp and rangeLow ? rangeLow : na
+UpperBand = sd and upperBand ? upperBand : na
 
-iff_1 = val > nz(val[1]) ? color.lime : color.green
-iff_2 = val < nz(val[1]) ? color.red : color.maroon
-bcolor = val > 0 ? iff_1 : iff_2
-scolor = noSqz ? color.blue : sqzOn ? color.black : color.gray
-plot(val, color=bcolor, style=plot.style_histogram, linewidth=4)
-plot(0, color=scolor, style=plot.style_cross, linewidth=2)
+plot(RangeHigh, title='Range High Percentile', style=plot.style_line, linewidth=4, color=color.new(color.orange, 0))
+plot(RangeLow, title='Range Low Percentile', style=plot.style_line, linewidth=4, color=color.new(color.orange, 0))
+plot(UpperBand, title='Upper Band', style=plot.style_line, linewidth=3, color=color.new(color.aqua, 0))
+plot(wvf, title='Williams Vix Fix', style=plot.style_histogram, linewidth=4, color=col)
                             </code></pre>
                         </td>
                         <td style="width:20px"> </td>
                         <td>
                             <pre><code class="code language-javascript">
-const length = input.int(20, "BB Length");
-const mult = input.float(2.0, "BB MultFactor");
-const lengthKC = input.int(20, "KC Length");
-const multKC = input.float(1.5, "KC MultFactor");
+const pd = input.int(22, 'LookBack Period Standard Deviation High');
+const bbl = input.int(20, 'Bolinger Band Length');
+const mult = input.float(2.0, 'Bollinger Band Standard Devaition Up');
+const lb = input.int(50, 'Look Back Period Percentile High');
+const ph = input.float(0.85, 'Highest Percentile - 0.90=90%, 0.95=95%, 0.99=99%');
+const pl = input.float(1.01, 'Lowest Percentile - 1.10=90%, 1.05=95%, 1.01=99%');
+const hp = input.bool(true, 'Show High Range - Based on Percentile and LookBack Period?');
+const sd = input.bool(true, 'Show Standard Deviation Line?');
 
-const useTrueRange = input.bool(true, "Use TrueRange (KC)");
+const wvf = ((ta.highest(close, pd) - low) / ta.highest(close, pd)) * 100;
 
-// Calculate BB
-let source = close;
-const basis = ta.sma(source, length);
-const dev = multKC * ta.stdev(source, length);
-const upperBB = basis + dev;
-const lowerBB = basis - dev;
+const sDev = mult * ta.stdev(wvf, bbl);
+const midLine = ta.sma(wvf, bbl);
+const lowerBand = midLine - sDev;
+const upperBand = midLine + sDev;
 
-// Calculate KC
-const ma = ta.sma(source, lengthKC);
-const range_1 = useTrueRange ? ta.tr : high - low;
-const rangema = ta.sma(range_1, lengthKC);
-const upperKC = ma + rangema * multKC;
-const lowerKC = ma - rangema * multKC;
+const rangeHigh = ta.highest(wvf, lb) * ph;
+const rangeLow = ta.lowest(wvf, lb) * pl;
 
-const sqzOn = lowerBB > lowerKC && upperBB < upperKC;
-const sqzOff = lowerBB < lowerKC && upperBB > upperKC;
-const noSqz = sqzOn == false && sqzOff == false;
+const col = wvf >= upperBand || wvf >= rangeHigh ? color.lime : color.gray;
 
-const val = ta.linreg(source - math.avg(math.avg(ta.highest(high, lengthKC), ta.lowest(low, lengthKC)), ta.sma(close, lengthKC)), lengthKC, 0);
+const RangeHigh = hp && rangeHigh ? rangeHigh : NaN;
+const RangeLow = hp && rangeLow ? rangeLow : NaN;
+const UpperBand = sd && upperBand ? upperBand : NaN;
 
-const iff_1 = val > nz(val[1]) ? color.lime : color.green;
-const iff_2 = val < nz(val[1]) ? color.red : color.maroon;
-const bcolor = val > 0 ? iff_1 : iff_2;
-const scolor = noSqz ? color.blue : sqzOn ? color.black : color.gray;
-plot(val, "Momentum", { color: bcolor, style: "histogram", linewidth: 4 });
-plot(0, "Cross", { color: scolor, style: "cross", linewidth: 2 });                                
+plot(RangeHigh, 'RangeHigh', { style: 'line', linewidth: 1, color: 'lime' });
+plot(RangeLow, 'RangeLow', { style: 'line', linewidth: 1, color: 'orange' });
+plot(UpperBand, 'UpperBand', { style: 'line', linewidth: 2, color: 'aqua' });
+plot(wvf, 'WilliamsVixFix', { style: 'histogram', linewidth: 4, color: col });
                             </code></pre>
                         </td>
                     </tr>
@@ -289,46 +280,42 @@ const pineTS = new PineTS( PineTS.Provider.Binance,
     
 
     //below is the converted code from Pine Script to PineTS
-    const length = input.int(20, "BB Length");
-    const mult = input.float(2.0, "BB MultFactor");
-    const lengthKC = input.int(20, "KC Length");
-    const multKC = input.float(1.5, "KC MultFactor");
-
-    const useTrueRange = input.bool(true, "Use TrueRange (KC)");
-
-    // Calculate BB
-    let source = close;
-    const basis = ta.sma(source, length);
-    const dev = multKC * ta.stdev(source, length);
-    const upperBB = basis + dev;
-    const lowerBB = basis - dev;
-
-    // Calculate KC
-    const ma = ta.sma(source, lengthKC);
-    const range_1 = useTrueRange ? ta.tr : high - low;
-    const rangema = ta.sma(range_1, lengthKC);
-    const upperKC = ma + rangema * multKC;
-    const lowerKC = ma - rangema * multKC;
-
-    const sqzOn = lowerBB > lowerKC && upperBB < upperKC;
-    const sqzOff = lowerBB < lowerKC && upperBB > upperKC;
-    const noSqz = sqzOn == false && sqzOff == false;
-
-    const val = ta.linreg(source - math.avg(math.avg(ta.highest(high, lengthKC), ta.lowest(low, lengthKC)), ta.sma(close, lengthKC)), lengthKC, 0);
-
-    const iff_1 = val > nz(val[1]) ? color.lime : color.green;
-    const iff_2 = val < nz(val[1]) ? color.red : color.maroon;
-    const bcolor = val > 0 ? iff_1 : iff_2;
-    const scolor = noSqz ? color.blue : sqzOn ? color.black : color.gray;
-    plot(val, "Momentum", { color: bcolor, style: "histogram", linewidth: 4 });
-    plot(0, "Cross", { color: scolor, style: "cross", linewidth: 2 });
+    const pd = input.int(22, 'LookBack Period Standard Deviation High');
+    const bbl = input.int(20, 'Bolinger Band Length');
+    const mult = input.float(2.0, 'Bollinger Band Standard Devaition Up');
+    const lb = input.int(50, 'Look Back Period Percentile High');
+    const ph = input.float(0.85, 'Highest Percentile - 0.90=90%, 0.95=95%, 0.99=99%');
+    const pl = input.float(1.01, 'Lowest Percentile - 1.10=90%, 1.05=95%, 1.01=99%');
+    const hp = input.bool(true, 'Show High Range - Based on Percentile and LookBack Period?');
+    const sd = input.bool(true, 'Show Standard Deviation Line?');
+    
+    const wvf = ((ta.highest(close, pd) - low) / ta.highest(close, pd)) * 100;
+    
+    const sDev = mult * ta.stdev(wvf, bbl);
+    const midLine = ta.sma(wvf, bbl);
+    const lowerBand = midLine - sDev;
+    const upperBand = midLine + sDev;
+    
+    const rangeHigh = ta.highest(wvf, lb) * ph;
+    const rangeLow = ta.lowest(wvf, lb) * pl;
+    
+    const col = wvf >= upperBand || wvf >= rangeHigh ? color.lime : color.gray;
+    
+    const RangeHigh = hp && rangeHigh ? rangeHigh : NaN;
+    const RangeLow = hp && rangeLow ? rangeLow : NaN;
+    const UpperBand = sd && upperBand ? upperBand : NaN;
+    
+    plot(RangeHigh, 'RangeHigh', { style: 'line', linewidth: 1, color: 'lime' });
+    plot(RangeLow, 'RangeLow', { style: 'line', linewidth: 1, color: 'orange' });
+    plot(UpperBand, 'UpperBand', { style: 'line', linewidth: 2, color: 'aqua' });
+    plot(wvf, 'WilliamsVixFix', { style: 'histogram', linewidth: 4, color: col });
   });
 
   console.log(plots);
         </code></pre>
 
         <script src="../../js/pinets.min.browser.js"></script>
-        <script src="./SQZMOM.js"></script>
+        <script src="./WillVixFix.js"></script>
         <script src="./chart.js"></script>
     </div>
 
