@@ -1,0 +1,44 @@
+{
+    "name": "pinets",
+    "version": "0.1.0",
+    "description": "",
+    "main": "dist/pinets.min.es.js",
+    "types": "dist/types/index.d.ts",
+    "files": [
+        "dist"
+    ],
+    "type": "module",
+    "scripts": {
+        "test": "cross-env TEST_ENV=true vitest --reporter verbose",
+        "build:dev:all": "npm run build:dev:browser && npm run build:dev:cjs && npm run build:dev:es && tsc --emitDeclarationOnly --declaration --outDir dist/types -p tsconfig.dts.json",
+        "build:dev:cjs": "cross-env BUILD=dev FORMAT=cjs rollup -c ./rollup.config.js",
+        "build:dev:browser": "cross-env BUILD=dev FORMAT=browser rollup -c ./rollup.config.js",
+        "build:dev:es": "cross-env BUILD=dev rollup -c ./rollup.config.js",
+        "build:prod:all": "npm run build:prod:browser && npm run build:prod:cjs && npm run build:prod:es && tsc --emitDeclarationOnly --declaration --outDir dist/types -p tsconfig.dts.json",
+        "build:prod:cjs": "cross-env BUILD=prod FORMAT=cjs rollup -c ./rollup.config.js",
+        "build:prod:browser": "cross-env BUILD=prod FORMAT=browser rollup -c ./rollup.config.js",
+        "build:prod:es": "cross-env BUILD=prod rollup -c ./rollup.config.js",
+        "knip": "knip"
+    },
+    "author": "Alaa-eddine KADDOURI",
+    "license": "AGPL-3.0",
+    "dependencies": {
+        "acorn": "^8.14.0",
+        "acorn-walk": "^8.3.4",
+        "astring": "^1.9.0"
+    },
+    "devDependencies": {
+        "@rollup/plugin-commonjs": "^28.0.2",
+        "@rollup/plugin-json": "^6.1.0",
+        "@rollup/plugin-node-resolve": "^16.0.0",
+        "@vitest/coverage-v8": "^2.0.0",
+        "cross-env": "^7.0.3",
+        "knip": "^5.43.6",
+        "rollup": "^2.79.2",
+        "rollup-plugin-esbuild": "^6.1.1",
+        "rollup-plugin-sourcemaps": "^0.6.3",
+        "rollup-plugin-typescript-paths": "^1.5.0",
+        "vite-tsconfig-paths": "^4.3.2",
+        "vitest": "^2.0.0"
+    }
+}
