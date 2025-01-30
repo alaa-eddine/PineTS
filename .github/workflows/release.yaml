@@ -9,6 +9,9 @@ jobs:
     release:
         runs-on: ubuntu-latest
 
+        permissions:
+            contents: write # Allows creating GitHub releases
+
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
