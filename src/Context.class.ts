@@ -6,6 +6,7 @@ import { Input } from '@pinets/namespaces/Input';
 import PineMath from '@pinets/namespaces/PineMath';
 import { PineRequest } from '@pinets/namespaces/PineRequest';
 import TechnicalAnalysis from '@pinets/namespaces/TechnicalAnalysis';
+import { PineArray } from './namespaces/PineArray';
 
 export class Context {
     public data: any = {
@@ -19,11 +20,15 @@ export class Context {
         ohlc4: [],
     };
 
+    public NA: any = NaN;
+
     public math: PineMath;
     public ta: TechnicalAnalysis;
     public input: Input;
     public request: PineRequest;
+    public array: PineArray;
     public core: any;
+    public lang: any;
 
     public idx: number = 0;
 
@@ -41,6 +46,7 @@ export class Context {
         this.ta = new TechnicalAnalysis(this);
         this.input = new Input(this);
         this.request = new PineRequest(this);
+        this.array = new PineArray(this);
         const core = new Core(this);
         this.core = {
             plotchar: core.plotchar.bind(core),

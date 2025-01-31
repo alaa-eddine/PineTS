@@ -9,7 +9,7 @@ PineTS is an independent project and is not affiliated with, endorsed by, or ass
 
 ## Overview
 
-PineTS makes it possible to migrate Pine Script indicators to JavaScript/TypeScript while maintaining similar functionality and behavior. The library handles time-series data processing, technical analysis calculations, and Pine Script's unique scoping rules.
+PineTS enables seamless conversion of Pine Script indicators to JavaScript/TypeScript code. It preserves the original functionality and behavior while providing robust handling of time-series data processing, technical analysis calculations, and Pine Script's distinctive scoping mechanisms.
 
 ## Key Features
 
@@ -43,7 +43,7 @@ The main class that handles:
 ## Installation
 
 ```bash
-npm install pinets
+npm install github:alaa-eddine/PineTS
 ```
 
 ## Usage Example

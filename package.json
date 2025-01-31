@@ -40,5 +40,9 @@
         "rollup-plugin-typescript-paths": "^1.5.0",
         "vite-tsconfig-paths": "^4.3.2",
         "vitest": "^2.0.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/alaa-eddine/PineTS.git"
     }
 }

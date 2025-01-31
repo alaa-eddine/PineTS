@@ -69,25 +69,5 @@ export async function runNSFunctionWithArgs(klines: any[], ns: string, fn: strin
      }`;
 
     const { result } = await pineTS.run(sourceCode);
-    // //
-    // const context = new Context(pineTS.data);
-    // const namespace = context[ns];
-
-    // let localArgs = [];
-
-    // for (let i = 0; i < args.length; i++) {
-    //     if (typeof args[i] === 'number') {
-    //         localArgs.push(args[i]);
-    //     } else {
-    //         const source: any[] = pineTS[args[i]];
-    //         if (source) {
-    //             localArgs.push(source);
-    //         } else {
-    //             localArgs.push(args[i]);
-    //         }
-    //     }
-    // }
-    // const result = await namespace[fn](...localArgs);
-
     return result;
 }

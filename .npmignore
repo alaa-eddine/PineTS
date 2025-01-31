@@ -1,0 +1,33 @@
+# Ignore test and dev-related files
+tests/
+node_modules/
+.vscode/
+.github/
+_experiments/
+_progress/
+
+# Ignore configuration and workspace files
+.npmignore
+.gitignore
+.prettierrc
+*.code-workspace
+tsconfig.json
+tsconfig.dts.json
+rollup.config.js
+vitest.config.ts
+config.json
+
+# Ignore documentation files (optional)
+docs/
+README.md
+
+# Ignore lock files and build artifacts
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Ignore TypeScript source files (since you're publishing compiled files)
+src/
+
+# Ignore other unnecessary files
+*.log
