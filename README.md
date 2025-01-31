@@ -43,7 +43,7 @@ The main class that handles:
 ## Installation
 
 ```bash
-npm install github:alaa-eddine/PineTS
+npm install pinets
 ```
 
 ## Usage Example
