@@ -140,3 +140,4 @@ tests/bak
 _progress
 _experiments
 *.expr.*
+*.tst.*
