@@ -30,17 +30,17 @@
 | `array.median()`                          |        |
 | `array.min()`                             |        |
 | `array.mode()`                            |        |
-| `array.new_bool()`                        |        |
+| `array.new_bool()`                        | ✔️     |
 | `array.new_box()`                         |        |
 | `array.new_color()`                       |        |
-| `array.new_float()`                       |        |
-| `array.new_int()`                         |        |
+| `array.new_float()`                       | ✔️     |
+| `array.new_int()`                         | ✔️     |
 | `array.new_label()`                       |        |
 | `array.new_line()`                        |        |
 | `array.new_linefill()`                    |        |
-| `array.new_string()`                      |        |
+| `array.new_string()`                      | ✔️     |
 | `array.new_table()`                       |        |
-| `array.new<type>()`                       |        |
+| `array.new<type>()`                       | ✔️     |
 | `array.percentile_linear_interpolation()` |        |
 | `array.percentile_nearest_rank()`         |        |
 | `array.percentrank()`                     |        |

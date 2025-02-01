@@ -1,5 +1,12 @@
 # Change Log
 
+## [0.1.1] - 2025-02-01 - array namespace
+
+### Added
+
+-   array namespace partial support. Ported functions : array.new_bool, array.new_float, array.new_int, array.new_string, array.new<type>, abs, avg, clear, concat, copy, covariance, every, fill, first, from, get, includes, indexof, insert, join, last, lastindexof, pop, push, range, remove, reverse, set, shift, slice, some, sort, sort_indices, standardize, stdev, sum.
+-   Documentation pages to track portage coverage of Pine Script API and Language features.
+
 ## [0.1.0] - 2025-01-29 - Initial release
 
 This is the first release of PineTS, a TypeScript library that allows you to port Pine Script indicators to TypeScript.
