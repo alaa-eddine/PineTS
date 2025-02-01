@@ -160,7 +160,7 @@
 <body>
     <div id="container">
         <h1>A Port of Squeeze Momentum Indicator [LazyBear]</h1>
-
+        [BTCUSDT Weekly Timeframe]
         <div class="chart-container">
             <div id="main-chart"></div>
             <div id="indicator-chart"></div>
@@ -267,7 +267,15 @@ plot(0, "Cross", { color: scolor, style: "cross", linewidth: 2 });
                 </tbody>
             </table>
         </div>
+        <b>Note : PineTS plot directive returns an object with plot data, it does not actually render it as PineTS does
+            not
+            handle rendering.<br />
+            The rendering part is implemented with lightweight-charts library in the current example (see check chart.js
+            script
+            used in this page).
+        </b>
 
+        <hr>
         <h2>Usage</h2>
         <p>
             Once you port the code, you can use PineTS to run it, plot directives returns objects with all required data
