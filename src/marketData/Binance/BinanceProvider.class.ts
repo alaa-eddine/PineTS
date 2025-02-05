@@ -23,6 +23,8 @@ const timeframe_to_binance = {
 import { IProvider } from '@pinets/marketData/IProvider';
 
 export class BinanceProvider implements IProvider {
+    //TODO : allow querying more than 1000 klines
+    //TODO : immplement cache
     async getMarketData(tickerId: string, timeframe: string, limit?: number, sDate?: number, eDate?: number): Promise<any> {
         try {
             const interval = timeframe_to_binance[timeframe.toUpperCase()];

@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.1.2] - 2025-02-05 - initial request.security() support
+
+### Added
+
+-   Support for request.security() function : in this build we only support the security() function for timeframes higher than the current timeframe, also, gaps, ignore_invalid_symbol, currency and calc_bars_count parameters are supported yet
+
 ## [0.1.1] - 2025-02-01 - array namespace
 
 ### Added

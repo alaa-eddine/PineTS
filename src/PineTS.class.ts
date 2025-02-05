@@ -94,15 +94,24 @@ export class PineTS {
         return this._readyPromise;
     }
 
-    public async run(fn: Function | String, n?: number) {
+    public async run(pineTSCode: Function | String, n?: number): Promise<Context> {
         await this.ready();
         if (!n) n = this._periods;
-        const context = new Context(this.data);
-        context.timeframe = this.timeframe;
+
+        const context = new Context({
+            marketData: this.data,
+            source: this.source,
+            tickerId: this.tickerId,
+            timeframe: this.timeframe,
+            limit: this.limit,
+            sDate: this.sDate,
+            eDate: this.eDate,
+        });
+
+        context.pineTSCode = pineTSCode;
 
         const transformer = transpile.bind(this);
-
-        let transformedFn = transformer(fn);
+        let transpiledFn = transformer(pineTSCode);
 
         //console.log('>>> transformedFn: ', transformedFn.toString());
 
@@ -121,7 +130,7 @@ export class PineTS {
             context.data.openTime = this.openTime.slice(idx);
             context.data.closeTime = this.closeTime.slice(idx);
 
-            const result = await transformedFn(context);
+            const result = await transpiledFn(context);
 
             //collect results
             if (typeof result === 'object') {

@@ -7,6 +7,7 @@ import PineMath from '@pinets/namespaces/PineMath';
 import { PineRequest } from '@pinets/namespaces/PineRequest';
 import TechnicalAnalysis from '@pinets/namespaces/TechnicalAnalysis';
 import { PineArray } from './namespaces/PineArray';
+import { IProvider } from './marketData/IProvider';
 
 export class Context {
     public data: any = {
@@ -19,6 +20,7 @@ export class Context {
         hlc3: [],
         ohlc4: [],
     };
+    public cache: any = {};
 
     public NA: any = NaN;
 
@@ -39,13 +41,48 @@ export class Context {
 
     public result: any = undefined;
     public plots: any = {};
-    public timeframe: string = '';
 
-    constructor(public marketData: any) {
+    public marketData: any;
+    public source: IProvider | any[];
+    public tickerId: string;
+    public timeframe: string = '';
+    public limit: number;
+    public sDate: number;
+    public eDate: number;
+
+    public pineTSCode: Function | String;
+
+    constructor({
+        marketData,
+        source,
+        tickerId,
+        timeframe,
+        limit,
+        sDate,
+        eDate,
+    }: {
+        marketData: any;
+        source: IProvider | any[];
+        tickerId?: string;
+        timeframe?: string;
+        limit?: number;
+        sDate?: number;
+        eDate?: number;
+    }) {
+        this.marketData = marketData;
+        this.source = source;
+        this.tickerId = tickerId;
+        this.timeframe = timeframe;
+        this.limit = limit;
+        this.sDate = sDate;
+        this.eDate = eDate;
+
         this.math = new PineMath(this);
+
         this.ta = new TechnicalAnalysis(this);
         this.input = new Input(this);
         this.request = new PineRequest(this);
+
         this.array = new PineArray(this);
         const core = new Core(this);
         this.core = {

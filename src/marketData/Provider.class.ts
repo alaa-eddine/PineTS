@@ -4,4 +4,5 @@ import { BinanceProvider } from './Binance/BinanceProvider.class';
 
 export const Provider = {
     Binance: new BinanceProvider(),
+    //TODO : add other providers (polygon, etc.)
 };
