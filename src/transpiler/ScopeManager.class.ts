@@ -12,6 +12,7 @@ export class ScopeManager {
     private loopVars: Set<string> = new Set();
     private loopVarNames: Map<string, string> = new Map(); // Map original names to transformed names
     private paramIdCounter: number = 0;
+    private cacheIdCounter: number = 0;
     private tempVarCounter: number = 0;
 
     public get nextParamIdArg(): any {
@@ -21,6 +22,12 @@ export class ScopeManager {
         };
     }
 
+    public get nextCacheIdArg(): any {
+        return {
+            type: 'Identifier',
+            name: `'cache_${this.cacheIdCounter++}'`,
+        };
+    }
     constructor() {
         // Initialize global scope
         this.pushScope('glb');

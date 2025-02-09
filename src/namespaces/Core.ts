@@ -2,12 +2,35 @@
 
 export class Core {
     public color = {
+        param: (source, index = 0) => {
+            if (Array.isArray(source)) {
+                return source[index];
+            }
+            return source;
+        },
+        rgb: (r: number, g: number, b: number, a?: number) => (a ? `rgba(${r}, ${g}, ${b}, ${a})` : `rgb(${r}, ${g}, ${b})`),
+        new: (color: string, a?: number) => {
+            // Handle hexadecimal colors
+            if (color && color.startsWith('#')) {
+                // Remove # and convert to RGB
+                const hex = color.slice(1);
+                const r = parseInt(hex.slice(0, 2), 16);
+                const g = parseInt(hex.slice(2, 4), 16);
+                const b = parseInt(hex.slice(4, 6), 16);
+
+                return a ? `rgba(${r}, ${g}, ${b}, ${a})` : `rgb(${r}, ${g}, ${b})`;
+            }
+            // Handle existing RGB format
+            return a ? `rgba(${color}, ${a})` : color;
+        },
         white: 'white',
         lime: 'lime',
         green: 'green',
         red: 'red',
         maroon: 'maroon',
+
         black: 'black',
+
         gray: 'gray',
         blue: 'blue',
     };
@@ -36,7 +59,7 @@ export class Core {
         this.context.plots[title].data.push({
             time: this.context.marketData[this.context.marketData.length - this.context.idx - 1].openTime,
             value: series[0],
-            options: this.extractPlotOptions(options),
+            options: { ...this.extractPlotOptions(options), style: 'char' },
         });
     }
 
@@ -56,10 +79,8 @@ export class Core {
         return Array.isArray(series) ? isNaN(series[0]) : isNaN(series);
     }
     nz(series: any, replacement: number = 0) {
-        if (Array.isArray(series)) {
-            return isNaN(series[0]) ? replacement : series[0];
-        } else {
-            return isNaN(series) ? replacement : series;
-        }
+        const val = Array.isArray(series) ? series[0] : series;
+        const rep = Array.isArray(series) ? replacement[0] : replacement;
+        return isNaN(val) ? rep : val;
     }
 }

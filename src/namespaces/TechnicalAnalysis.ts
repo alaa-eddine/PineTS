@@ -16,6 +16,7 @@ export class TechnicalAnalysis {
         if (Array.isArray(source)) {
             if (index) {
                 this.context.params[name] = source.slice(index);
+                this.context.params[name].length = source.length; //ensure length is correct
                 return this.context.params[name];
             }
             this.context.params[name] = source.slice(0);
@@ -35,10 +36,28 @@ export class TechnicalAnalysis {
         return this.context.precision(result[idx]);
     }
 
-    sma(source, _period) {
+    sma(source, _period, _cacheId?) {
         const period = Array.isArray(_period) ? _period[0] : _period;
-        const result = sma(source.slice(0).reverse(), period);
-        //return result.reverse();
+        const reversedSource = source.slice(0).reverse();
+
+        if (this.context.useTACache && _cacheId) {
+            // Initialize cache if it doesn't exist
+            if (!this.context.cache[_cacheId]) {
+                this.context.cache[_cacheId] = {};
+            }
+
+            const cacheObj = this.context.cache[_cacheId];
+
+            // Check if we can use cache
+            if (cacheObj) {
+                const result = sma_cache(reversedSource, period, cacheObj);
+                const idx = this.context.idx;
+                return this.context.precision(result[idx]);
+            }
+        }
+
+        // Calculate from scratch if no cache or cache conditions not met
+        const result = sma(reversedSource, period);
         const idx = this.context.idx;
         return this.context.precision(result[idx]);
     }
@@ -300,13 +319,61 @@ function rma(source: number[], period: number): number[] {
     return result;
 }
 
-function sma(source, period) {
+function sma_cache(
+    source: number[],
+    period: number,
+    cacheObj: {
+        previousSum?: number;
+        lastProcessedIndex?: number;
+        previousResult?: number[];
+    }
+) {
+    const result = cacheObj.previousResult || new Array(source.length).fill(NaN);
+    const lastProcessedIndex = cacheObj.lastProcessedIndex || -1;
+    let previousSum = cacheObj.previousSum || 0;
+
+    if (lastProcessedIndex === -1 || source.length !== lastProcessedIndex + 1) {
+        // Initialize cache or handle reset/different length source
+        previousSum = 0;
+        for (let i = 0; i < period; i++) {
+            previousSum += source[i] || 0;
+        }
+        result[period - 1] = previousSum / period;
+
+        // Fill initial values with NaN for cache initialization as well
+        for (let i = 0; i < period - 1; i++) {
+            result[i] = NaN;
+        }
+
+        for (let i = period; i < source.length; i++) {
+            previousSum = previousSum - (source[i - period] || 0) + (source[i] || 0);
+            result[i] = previousSum / period;
+        }
+    } else if (source.length === lastProcessedIndex + 2) {
+        // Optimized calculation for new element
+        const newIndex = source.length - 1;
+        previousSum = previousSum - (source[newIndex - period] || 0) + (source[newIndex] || 0);
+        result[newIndex] = previousSum / period;
+    } else {
+        // Fallback to full calculation if cache is inconsistent or source length changed unexpectedly
+        return sma(source, period);
+    }
+
+    cacheObj.previousSum = previousSum;
+    cacheObj.lastProcessedIndex = source.length - 1;
+    cacheObj.previousResult = result;
+
+    return result;
+}
+
+function sma(source: number[], period: number): number[] {
     const result = new Array(source.length).fill(NaN);
 
+    // First (period-1) elements will remain NaN
     for (let i = period - 1; i < source.length; i++) {
         let sum = 0;
         for (let j = 0; j < period; j++) {
-            sum += source[i - j] || 0; //handle NaN values
+            sum += source[i - j] || 0;
         }
         result[i] = sum / period;
     }
@@ -476,7 +543,7 @@ function lowest(source: number[], length: number): number[] {
         let min = Infinity;
         for (let j = 0; j < length; j++) {
             const value = source[i - j];
-            if (isNaN(value)) {
+            if (isNaN(value) || value === undefined) {
                 min = min === Infinity ? NaN : min;
             } else {
                 min = Math.min(min, value);

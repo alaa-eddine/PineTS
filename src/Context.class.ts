@@ -21,6 +21,7 @@ export class Context {
         ohlc4: [],
     };
     public cache: any = {};
+    public useTACache = false;
 
     public NA: any = NaN;
 
@@ -129,6 +130,7 @@ export class Context {
      * by default it is set to 10 decimals which is the same as pine script
      * @param n - the number to be precision
      * @param decimals - the number of decimals to precision to
+
      * @returns the precision number
      */
     precision(n: number, decimals: number = 10) {
@@ -151,6 +153,7 @@ export class Context {
         if (Array.isArray(source)) {
             if (index) {
                 this.params[name] = source.slice(index);
+                this.params[name].length = source.length; //ensure length is correct
                 return this.params[name];
             }
             this.params[name] = source.slice(0);

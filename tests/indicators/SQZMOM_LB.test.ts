@@ -72,12 +72,12 @@ describe('Indicators', () => {
         const upperBBPlot = plots['upperBB'].data.reverse().slice(0, 10);
         const upperKCPlot = plots['upperKC'].data.reverse().slice(0, 10);
 
-        valPlot.forEach((e) => (e.time = new Date(e.time * 1000).toISOString()));
-        charPlot.forEach((e) => (e.time = new Date(e.time * 1000).toISOString()));
-        lowerBBPlot.forEach((e) => (e.time = new Date(e.time * 1000).toISOString()));
-        lowerKCPlot.forEach((e) => (e.time = new Date(e.time * 1000).toISOString()));
-        upperBBPlot.forEach((e) => (e.time = new Date(e.time * 1000).toISOString()));
-        upperKCPlot.forEach((e) => (e.time = new Date(e.time * 1000).toISOString()));
+        valPlot.forEach((e) => (e.time = new Date(e.time).toISOString()));
+        charPlot.forEach((e) => (e.time = new Date(e.time).toISOString()));
+        lowerBBPlot.forEach((e) => (e.time = new Date(e.time).toISOString()));
+        lowerKCPlot.forEach((e) => (e.time = new Date(e.time).toISOString()));
+        upperBBPlot.forEach((e) => (e.time = new Date(e.time).toISOString()));
+        upperKCPlot.forEach((e) => (e.time = new Date(e.time).toISOString()));
         console.log('>>> valPlot: ', valPlot);
         //console.log('>>> charPlot: ', charPlot);
 

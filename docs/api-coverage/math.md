@@ -18,6 +18,7 @@
 | `math.log()`    | ✔️     |
 | `math.max()`    | ✅     |
 | `math.min()`    | ✅     |
+| `math.sum()`    | ✔️     |
 | `math.pow()`    | ✔️     |
 | `math.random()` | ✔️     |
 | `math.round()`  | ✔️     |

@@ -10,7 +10,7 @@
 | `color.b()`             |        |
 | `color.from_gradient()` |        |
 | `color.g()`             |        |
-| `color.new()`           |        |
+| `color.new()`           | ⏳     |
 | `color.r()`             |        |
-| `color.rgb()`           |        |
+| `color.rgb()`           | ⏳     |
 | `color.t()`             |        |

@@ -5,13 +5,13 @@ import { Provider } from '@pinets/marketData/Provider.class';
 
 describe('Indicators', () => {
     it('pine_supertrend', async () => {
-        const pineTS = new PineTS(Provider.Binance, 'SUIUSDT', '1d', 1000, 0, new Date('Dec 25 2024').getTime() - 1);
+        const pineTS = new PineTS(Provider.Binance, 'BTCUSDT', '240', 1000);
 
-        const { result } = await pineTS.run((context) => {
+        const { result, plots } = await pineTS.run((context) => {
             const ta = context.ta;
 
             const { close, hl2 } = context.data;
-            const { na, nz } = context.core;
+            const { na, nz, plot } = context.core;
 
             function pine_supertrend(factor, atrPeriod) {
                 const src = hl2;
@@ -37,11 +37,24 @@ describe('Indicators', () => {
             }
 
             const [supertrend, direction] = pine_supertrend(3, 10);
+            plot(supertrend, 'supertrend', { color: 'green', style: 'linebr' });
+            plot(direction, 'direction', { color: 'green', style: 'linebr' });
+            plot(direction < 0 ? supertrend[2] : na, 'Up', { color: 'green', style: 'linebr' });
+            plot(direction > 0 ? supertrend : na, 'Down', { color: 'red', style: 'linebr' });
 
             return {
                 direction,
                 supertrend,
             };
         });
+
+        const data = plots['Up'].data.reverse().slice(0, 30);
+        data.forEach((d) => {
+            d.time = new Date(d.time).toISOString();
+            delete d.options;
+        });
+
+        console.log('>>> plots: ', data);
+        //console.log('>>> plots: ', plots['Down'].data.reverse().slice(0, 10));
     });
 });

@@ -178,6 +178,11 @@ function transformMemberExpression(memberNode: any, originalParamName: string, s
 
 function transformVariableDeclaration(varNode: any, scopeManager: ScopeManager): void {
     varNode.declarations.forEach((decl: any) => {
+        //special case for na
+        if (decl.init.name == 'na') {
+            decl.init.name = 'NaN';
+        }
+
         // Check if this is a context property assignment
 
         // prettier-ignore
@@ -404,7 +409,25 @@ function transformVariableDeclaration(varNode: any, scopeManager: ScopeManager):
         };
 
         if (isArrayPatternVar) {
-            assignmentExpr.expression.right.object.property.name += '?.[0]';
+            assignmentExpr.expression.right.object.property.name += `?.[0][${decl.init.property.value}]`;
+            const obj = assignmentExpr.expression.right.object;
+
+            assignmentExpr.expression.right = {
+                type: 'CallExpression',
+                callee: {
+                    type: 'MemberExpression',
+                    object: {
+                        type: 'Identifier',
+                        name: CONTEXT_NAME,
+                    },
+                    property: {
+                        type: 'Identifier',
+                        name: 'init',
+                    },
+                    computed: false,
+                },
+                arguments: [targetVarRef, obj /*, decl.init.property.value*/],
+            };
         }
 
         if (isArrowFunction) {
@@ -626,15 +649,24 @@ function transformAssignmentExpression(node: any, scopeManager: ScopeManager): v
         { parent: node.right, inNamespaceCall: false },
         {
             Identifier(node: any, state: any, c: any) {
+                //special case for na
+                if (node.name == 'na') {
+                    node.name = 'NaN';
+                }
                 node.parent = state.parent;
                 transformIdentifier(node, scopeManager);
                 const isBinaryOperation = node.parent && node.parent.type === 'BinaryExpression';
                 const isConditional = node.parent && node.parent.type === 'ConditionalExpression';
+                const isContextBound = scopeManager.isContextBound(node.name) && !scopeManager.isRootParam(node.name);
+                const hasArrayAccess = node.parent && node.parent.type === 'MemberExpression' && node.parent.computed && node.parent.object === node;
+                const isParamCall = node.parent && node.parent._isParamCall;
+                const isMemberExpression = node.parent && node.parent.type === 'MemberExpression';
+                const isReserved = node.name === 'NaN';
 
-                if (isConditional || isBinaryOperation) {
+                if (isContextBound || isConditional || isBinaryOperation) {
                     if (node.type === 'MemberExpression') {
                         transformArrayIndex(node, scopeManager);
-                    } else if (node.type === 'Identifier') {
+                    } else if (node.type === 'Identifier' && !isMemberExpression && !hasArrayAccess && !isParamCall && !isReserved) {
                         addArrayAccess(node, scopeManager);
                     }
                 }
@@ -909,6 +941,11 @@ function transformReturnStatement(node: any, scopeManager: ScopeManager): void {
 
 function transformIdentifierForParam(node: any, scopeManager: ScopeManager): any {
     if (node.type === 'Identifier') {
+        if (node.name === 'na') {
+            node.name = 'NaN';
+            return node;
+        }
+
         // Skip transformation for loop variables
         if (scopeManager.isLoopVariable(node.name)) {
             return node;
@@ -968,48 +1005,89 @@ function transformIdentifierForParam(node: any, scopeManager: ScopeManager): any
     return node;
 }
 
+function getParamFromUnaryExpression(node: any, scopeManager: ScopeManager, namespace: string): any {
+    // Transform the argument
+    const transformedArgument = transformOperand(node.argument, scopeManager, namespace);
+
+    // Create the unary expression
+    const unaryExpr = {
+        type: 'UnaryExpression',
+        operator: node.operator,
+        prefix: node.prefix,
+        argument: transformedArgument,
+        start: node.start,
+        end: node.end,
+    };
+
+    return unaryExpr;
+    // Wrap the unary expression with namespace.param()
+    // return {
+    //     type: 'CallExpression',
+    //     callee: {
+    //         type: 'MemberExpression',
+    //         object: {
+    //             type: 'Identifier',
+    //             name: namespace,
+    //         },
+    //         property: {
+    //             type: 'Identifier',
+    //             name: 'param',
+    //         },
+    //         computed: false,
+    //     },
+    //     arguments: [unaryExpr, transformedArgument.property, scopeManager.nextParamIdArg],
+    //     _transformed: true,
+    //     _isParamCall: true,
+    // };
+}
+
 function transformOperand(node: any, scopeManager: ScopeManager, namespace: string = ''): any {
-    if (node.type === 'BinaryExpression') {
-        return transformBinaryExpression(node, scopeManager, namespace);
+    switch (node.type) {
+        case 'BinaryExpression': {
+            return getParamFromBinaryExpression(node, scopeManager, namespace);
+        }
+        case 'MemberExpression': {
+            // Handle array access
+            const transformedObject = node.object.type === 'Identifier' ? transformIdentifierForParam(node.object, scopeManager) : node.object;
+            // Don't add [0] if this is already an array access
+            return {
+                type: 'MemberExpression',
+                object: transformedObject,
+                property: node.property,
+                computed: node.computed,
+            };
+        }
+        case 'Identifier': {
+            // Skip transformation for loop variables
+            if (scopeManager.isLoopVariable(node.name)) {
+                return node;
+            }
+            // Check if this identifier is part of a member expression (array access)
+            const isMemberExprProperty = node.parent && node.parent.type === 'MemberExpression' && node.parent.property === node;
+            if (isMemberExprProperty) {
+                return node;
+            }
+            const transformedObject = transformIdentifierForParam(node, scopeManager);
+
+            return {
+                type: 'MemberExpression',
+                object: transformedObject,
+                property: {
+                    type: 'Literal',
+                    value: 0,
+                },
+                computed: true,
+            };
+        }
+        case 'UnaryExpression': {
+            return getParamFromUnaryExpression(node, scopeManager, namespace);
+        }
     }
 
-    if (node.type === 'MemberExpression') {
-        // Handle array access
-        const transformedObject = node.object.type === 'Identifier' ? transformIdentifierForParam(node.object, scopeManager) : node.object;
-        // Don't add [0] if this is already an array access
-        return {
-            type: 'MemberExpression',
-            object: transformedObject,
-            property: node.property,
-            computed: node.computed,
-        };
-    } else if (node.type === 'Identifier') {
-        // Skip transformation for loop variables
-        if (scopeManager.isLoopVariable(node.name)) {
-            return node;
-        }
-        // Check if this identifier is part of a member expression (array access)
-        const isMemberExprProperty = node.parent && node.parent.type === 'MemberExpression' && node.parent.property === node;
-        if (isMemberExprProperty) {
-            return node;
-        }
-        const transformedObject = transformIdentifierForParam(node, scopeManager);
-
-        return {
-            type: 'MemberExpression',
-            object: transformedObject,
-            property: {
-                type: 'Literal',
-                value: 0,
-            },
-            computed: true,
-        };
-        //transformArrayIndex(node, scopeManager);
-    }
     return node;
 }
 
-function transformBinaryExpression(node: any, scopeManager: ScopeManager, namespace: string): any {
+function getParamFromBinaryExpression(node: any, scopeManager: ScopeManager, namespace: string): any {
     // Transform both operands
     const transformedLeft = transformOperand(node.left, scopeManager, namespace);
     const transformedRight = transformOperand(node.right, scopeManager, namespace);
@@ -1040,22 +1118,124 @@ function transformBinaryExpression(node: any, scopeManager: ScopeManager, namesp
         },
     });
 
+    return binaryExpr;
     // Wrap the binary expression with namespace.param()
+    // return {
+    //     type: 'CallExpression',
+    //     callee: {
+    //         type: 'MemberExpression',
+    //         object: {
+    //             type: 'Identifier',
+    //             name: namespace,
+    //         },
+    //         property: {
+    //             type: 'Identifier',
+    //             name: 'param',
+    //         },
+    //         computed: false,
+    //     },
+    //     arguments: [binaryExpr, UNDEFINED_ARG, scopeManager.nextParamIdArg],
+    //     _transformed: true,
+    //     _isParamCall: true,
+    // };
+}
+
+function getParamFromLogicalExpression(node: any, scopeManager: ScopeManager, namespace: string): any {
+    // Transform both operands
+    const transformedLeft = transformOperand(node.left, scopeManager, namespace);
+    const transformedRight = transformOperand(node.right, scopeManager, namespace);
+
+    const logicalExpr = {
+        type: 'LogicalExpression',
+        operator: node.operator,
+        left: transformedLeft,
+        right: transformedRight,
+        start: node.start,
+        end: node.end,
+    };
+
+    // Walk through the logical expression to transform any function calls
+    walk.recursive(logicalExpr, scopeManager, {
+        CallExpression(node: any, scopeManager: ScopeManager) {
+            if (!node._transformed) {
+                transformCallExpression(node, scopeManager);
+            }
+        },
+    });
+
+    return logicalExpr;
+
+    // return {
+    //     type: 'CallExpression',
+    //     callee: {
+    //         type: 'MemberExpression',
+    //         object: { type: 'Identifier', name: namespace },
+    //         property: { type: 'Identifier', name: 'param' },
+    //     },
+    //     arguments: [logicalExpr, UNDEFINED_ARG, scopeManager.nextParamIdArg],
+    //     _transformed: true,
+    //     _isParamCall: true,
+    // };
+}
+
+function getParamFromConditionalExpression(node: any, scopeManager: ScopeManager, namespace: string): any {
+    // Transform identifiers in the right side of the assignment
+    walk.recursive(
+        node,
+        { parent: node, inNamespaceCall: false },
+        {
+            Identifier(node: any, state: any, c: any) {
+                if (node.name == 'NaN') return;
+                if (node.name == 'na') {
+                    node.name = 'NaN';
+                    return;
+                }
+                node.parent = state.parent;
+                transformIdentifier(node, scopeManager);
+                const isBinaryOperation = node.parent && node.parent.type === 'BinaryExpression';
+                const isConditional = node.parent && node.parent.type === 'ConditionalExpression';
+
+                if (isConditional || isBinaryOperation) {
+                    if (node.type === 'MemberExpression') {
+                        transformArrayIndex(node, scopeManager);
+                    } else if (node.type === 'Identifier') {
+                        addArrayAccess(node, scopeManager);
+                    }
+                }
+            },
+            MemberExpression(node: any, state: any, c: any) {
+                // Transform array indices first
+                transformArrayIndex(node, scopeManager);
+                // Then continue with object transformation
+                if (node.object) {
+                    c(node.object, { parent: node, inNamespaceCall: state.inNamespaceCall });
+                }
+            },
+            CallExpression(node: any, state: any, c: any) {
+                const isNamespaceCall =
+                    node.callee &&
+                    node.callee.type === 'MemberExpression' &&
+                    node.callee.object &&
+                    node.callee.object.type === 'Identifier' &&
+                    scopeManager.isContextBound(node.callee.object.name);
+
+                // First transform the call expression itself
+                transformCallExpression(node, scopeManager);
+
+                // Then transform its arguments with the correct context
+                node.arguments.forEach((arg: any) => c(arg, { parent: node, inNamespaceCall: isNamespaceCall || state.inNamespaceCall }));
+            },
+        }
+    );
+
     return {
         type: 'CallExpression',
         callee: {
             type: 'MemberExpression',
-            object: {
-                type: 'Identifier',
-                name: namespace,
-            },
-            property: {
-                type: 'Identifier',
-                name: 'param',
-            },
-            computed: false,
+            object: { type: 'Identifier', name: namespace },
+            property: { type: 'Identifier', name: 'param' },
         },
-        arguments: [binaryExpr, UNDEFINED_ARG, scopeManager.nextParamIdArg],
+        arguments: [node, UNDEFINED_ARG, scopeManager.nextParamIdArg],
         _transformed: true,
         _isParamCall: true,
     };
@@ -1063,8 +1243,21 @@ function transformBinaryExpression(node: any, scopeManager: ScopeManager, namesp
 
 function transformFunctionArgument(arg: any, namespace: string, scopeManager: ScopeManager): any {
     // Handle binary expressions (arithmetic operations)
-    if (arg.type === 'BinaryExpression') {
-        return transformBinaryExpression(arg, scopeManager, namespace);
+
+    switch (arg?.type) {
+        case 'BinaryExpression':
+            arg = getParamFromBinaryExpression(arg, scopeManager, namespace);
+            break;
+        case 'LogicalExpression':
+            arg = getParamFromLogicalExpression(arg, scopeManager, namespace);
+            break;
+        case 'ConditionalExpression':
+            return getParamFromConditionalExpression(arg, scopeManager, namespace);
+        case 'UnaryExpression':
+            arg = getParamFromUnaryExpression(arg, scopeManager, namespace);
+            break;
+        // case 'Identifier':
+        //     return transformOperand(arg, scopeManager, namespace);
     }
 
     // Check if the argument is an array access
@@ -1154,6 +1347,10 @@ function transformFunctionArgument(arg: any, namespace: string, scopeManager: Sc
     }
     // For non-array-access arguments
     if (arg.type === 'Identifier') {
+        if (arg.name === 'na') {
+            arg.name = 'NaN';
+            return arg;
+        }
         // If it's a context-bound variable (like a nested function parameter), use it directly
         if (scopeManager.isContextBound(arg.name) && !scopeManager.isRootParam(arg.name)) {
             return {
@@ -1180,7 +1377,7 @@ function transformFunctionArgument(arg: any, namespace: string, scopeManager: Sc
     // For all other cases, transform normally
 
     if (arg?.type === 'CallExpression') {
-        transformCallExpression(arg, scopeManager);
+        transformCallExpression(arg, scopeManager, namespace);
     }
     return {
         type: 'CallExpression',
@@ -1202,7 +1399,7 @@ function transformFunctionArgument(arg: any, namespace: string, scopeManager: Sc
     };
 }
 
-function transformCallExpression(node: any, scopeManager: ScopeManager): void {
+function transformCallExpression(node: any, scopeManager: ScopeManager, namespace?: string): void {
     // Skip if this node has already been transformed
     if (node._transformed) {
         return;
@@ -1226,6 +1423,11 @@ function transformCallExpression(node: any, scopeManager: ScopeManager): void {
             }
             return transformFunctionArgument(arg, namespace, scopeManager);
         });
+
+        // //TODO : support cache
+        // if (namespace === 'ta') {
+        //     node.arguments.push(scopeManager.nextCacheIdArg);
+        // }
         node._transformed = true;
     }
     // Check if this is a regular function call (not a namespace method)
@@ -1244,13 +1446,32 @@ function transformCallExpression(node: any, scopeManager: ScopeManager): void {
     // Transform any nested call expressions in the arguments
     node.arguments.forEach((arg: any) => {
         walk.recursive(arg, scopeManager, {
-            CallExpression(node: any, state: ScopeManager) {
+            Identifier(node: any, state: any, c: any) {
+                node.parent = state.parent;
+                transformIdentifier(node, scopeManager);
+                const isBinaryOperation = node.parent && node.parent.type === 'BinaryExpression';
+                const isConditional = node.parent && node.parent.type === 'ConditionalExpression';
+
+                if (isConditional || isBinaryOperation) {
+                    if (node.type === 'MemberExpression') {
+                        transformArrayIndex(node, scopeManager);
+                    } else if (node.type === 'Identifier') {
+                        addArrayAccess(node, scopeManager);
+                    }
+                }
+            },
+            CallExpression(node: any, state: any, c: any) {
                 if (!node._transformed) {
+                    // First transform the call expression itself
                     transformCallExpression(node, state);
                 }
             },
-            MemberExpression(node: any) {
+            MemberExpression(node: any, state: any, c: any) {
                 transformMemberExpression(node, '', scopeManager);
+                // Then continue with object transformation
+                if (node.object) {
+                    c(node.object, { parent: node, inNamespaceCall: state.inNamespaceCall });
+                }
             },
         });
     });

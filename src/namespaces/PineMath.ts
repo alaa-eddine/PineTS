@@ -3,84 +3,94 @@ export class PineMath {
     private _cache = {};
     constructor(private context: any) {}
 
-    param(source, index = 0) {
+    param(source, index, name?: string) {
+        if (!this.context.params[name]) this.context.params[name] = [];
         if (Array.isArray(source)) {
-            return source[index];
+            if (index) {
+                this.context.params[name] = source.slice(index);
+                this.context.params[name].length = source.length; //ensure length is correct
+                return this.context.params[name];
+            }
+            this.context.params[name] = source.slice(0);
+            return this.context.params[name];
+        } else {
+            this.context.params[name][0] = source;
+            return this.context.params[name];
+        }
+        //return [source];
+    }
+
+    abs(source: number[]) {
+        return Math.abs(source[0]);
+    }
+    pow(source: number[], power: number[]) {
+        return Math.pow(source[0], power[0]);
+    }
+    sqrt(source: number[]) {
+        return Math.sqrt(source[0]);
+    }
+    log(source: number[]) {
+        return Math.log(source[0]);
+    }
+    ln(source: number[]) {
+        return Math.log(source[0]);
+    }
+    exp(source: number[]) {
+        return Math.exp(source[0]);
+    }
+    floor(source: number[]) {
+        return Math.floor(source[0]);
+    }
+    ceil(source: number[]) {
+        return Math.ceil(source[0]);
+    }
+    round(source: number[]) {
+        return Math.round(source[0]);
+    }
+    random() {
+        return Math.random();
+    }
+    max(...source: number[]) {
+        const arg = source.map((e) => e[0]);
+        return Math.max(...arg);
+    }
+    min(...source: number[]) {
+        const arg = source.map((e) => e[0]);
+        return Math.min(...arg);
+    }
+
+    //sum of last n values
+    sum(source: number[], length: number) {
+        const len = Array.isArray(length) ? length[0] : length;
+        if (Array.isArray(source)) {
+            return source.slice(0, len).reduce((a, b) => a + b, 0);
         }
         return source;
     }
 
-    abs(n: number) {
-        return Math.abs(n);
+    sin(source: number[]) {
+        return Math.sin(source[0]);
+    }
+    cos(source: number[]) {
+        return Math.cos(source[0]);
+    }
+    tan(source: number[]) {
+        return Math.tan(source[0]);
     }
 
-    pow(a: number, b: number) {
-        return Math.pow(a, b);
+    acos(source: number[]) {
+        return Math.acos(source[0]);
+    }
+    asin(source: number[]) {
+        return Math.asin(source[0]);
+    }
+    atan(source: number[]) {
+        return Math.atan(source[0]);
     }
 
-    sqrt(a: number) {
-        return Math.sqrt(a);
-    }
+    avg(source: number[]) {
+        const args = source.map((e) => e[0]);
 
-    log(a: number) {
-        return Math.log(a);
-    }
-
-    ln(a: number) {
-        return Math.log(a);
-    }
-
-    exp(a: number) {
-        return Math.exp(a);
-    }
-
-    floor(a: number) {
-        return Math.floor(a);
-    }
-
-    ceil(a: number) {
-        return Math.ceil(a);
-    }
-
-    round(a: number) {
-        return Math.round(a);
-    }
-
-    random() {
-        return Math.random();
-    }
-    max(...args) {
-        return Math.max(...args);
-    }
-
-    min(...args) {
-        return Math.min(...args);
-    }
-
-    sin(a: number) {
-        return Math.sin(a);
-    }
-
-    cos(a: number) {
-        return Math.cos(a);
-    }
-
-    tan(a: number) {
-        return Math.tan(a);
-    }
-
-    asin(a: number) {
-        return Math.asin(a);
-    }
-
-    acos(a: number) {
-        return Math.acos(a);
-    }
-
-    atan(a: number) {
-        return Math.atan(a);
-    }
-    avg(...args) {
         return (
             args.reduce((a, b) => {
                 const aVal = Array.isArray(a) ? a[0] : a;
@@ -91,5 +101,4 @@ export class PineMath {
     }
 }
 
-//max([0,1,2,3,4,5,6,7,8,9], 5)
 export default PineMath;

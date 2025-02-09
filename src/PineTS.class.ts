@@ -94,7 +94,7 @@ export class PineTS {
         return this._readyPromise;
     }
 
-    public async run(pineTSCode: Function | String, n?: number): Promise<Context> {
+    public async run(pineTSCode: Function | String, n?: number, useTACache?: boolean): Promise<Context> {
         await this.ready();
         if (!n) n = this._periods;
 
@@ -109,7 +109,7 @@ export class PineTS {
         });
 
         context.pineTSCode = pineTSCode;
-
+        context.useTACache = useTACache;
         const transformer = transpile.bind(this);
         let transpiledFn = transformer(pineTSCode);
 

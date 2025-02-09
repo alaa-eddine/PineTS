@@ -1,5 +1,18 @@
 # Change Log
 
+## [0.1.3] - 2025-02-10 -
+
+### Added
+
+-   Multiple transpiler fixes
+-   Fix Logical, Binary and unary expressions when passed as arguments to PineTS internal functions (e.g plot(close && open, ...))
+-   Support fo "na" as valid value (will be converted to NaN by the transpiler)
+-   Fix for Pine Script functions returning tupples
+-   Add partial support for color.rgb and color.new (these need to be completely rewritten)
+-   Experimenting a cache approach for TA functions (not yet ready, only tested with sma)
+-   Add Support for querying large time interval from MarketDataProvider by running multiple requests with a step, the requested market data is cached to prevent rate limiting and optimize performance
+-   Complete refactor of math.\* functions to ensure compatibility with time series for all functions using the same syntax as Pine Script
+
 ## [0.1.2] - 2025-02-05 - initial request.security() support
 
 ### Added
