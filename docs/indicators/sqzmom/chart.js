@@ -1,6 +1,7 @@
 async function loadChartData() {
     try {
         const data = await PineTS.Provider.Binance.getMarketData('BTCUSDT', 'W', 500);
+        console.log('data', data);
         return data;
     } catch (error) {
         console.error('Error loading chart data:', error);
@@ -11,7 +12,7 @@ async function loadChartData() {
 async function loadIndicatorData() {
     try {
         const data = await SQZMOM('BTCUSDT', 'W', 500);
-        console.log(data);
+        console.log('indicator data', data);
         return data;
     } catch (error) {
         console.error('Error loading indicator data:', error);

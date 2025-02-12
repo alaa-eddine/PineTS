@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.1.31] - 2025-02-12 -
+
+### Added
+
+-   Fix for math.avg function
+
 ## [0.1.3] - 2025-02-10 -
 
 ### Added

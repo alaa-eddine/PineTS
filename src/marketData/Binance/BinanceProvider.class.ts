@@ -12,6 +12,7 @@ const timeframe_to_binance = {
     '120': '2h', // 2 hours
     '180': null, // 3 hours (not directly supported by Binance, needs custom handling)
     '240': '4h', // 4 hours
+    '4H': '4h', // 4 hours
     '1D': '1d', // 1 day
     D: '1d', // 1 day
     '1W': '1w', // 1 week

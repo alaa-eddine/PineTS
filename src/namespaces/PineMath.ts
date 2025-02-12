@@ -51,11 +51,11 @@ export class PineMath {
         return Math.random();
     }
     max(...source: number[]) {
-        const arg = source.map((e) => e[0]);
+        const arg = source.map((e) => (Array.isArray(e) ? e[0] : e));
         return Math.max(...arg);
     }
     min(...source: number[]) {
-        const arg = source.map((e) => e[0]);
+        const arg = source.map((e) => (Array.isArray(e) ? e[0] : e));
         return Math.min(...arg);
     }
 
@@ -88,8 +88,8 @@ export class PineMath {
         return Math.atan(source[0]);
     }
 
-    avg(source: number[]) {
-        const args = source.map((e) => e[0]);
+    avg(...sources: number[][]) {
+        const args = sources.map((e) => (Array.isArray(e) ? e[0] : e));
 
         return (
             args.reduce((a, b) => {
