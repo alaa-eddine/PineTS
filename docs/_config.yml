@@ -1,0 +1,10 @@
+remote_theme: pages-themes/minimal@v0.2.0
+plugins:
+    - jekyll-remote-theme
+
+title: PineTS
+description: Pine Script in TypeScript - Write trading indicators with TypeScript
+show_downloads: true
+google_analytics:
+github:
+    repository_url: https://github.com/alaa-eddine/PineTS
