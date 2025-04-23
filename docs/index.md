@@ -29,7 +29,7 @@ With PineTS, you can create, test and visualize technical indicators using moder
 <script src="./indicators/willvixfix/WillVixFix.js"></script>
 <script src="./js/chart.js"></script>
 <style>
-    #main-chart td {
+    .chart-container td {
         min-width: 0 !important;
     }
 </style>
