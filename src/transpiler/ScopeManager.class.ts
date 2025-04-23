@@ -61,6 +61,17 @@ export class ScopeManager {
             this.rootParams.add(name);
         }
     }
+    removeContextBoundVar(name): void {
+        // Remove a variable from the context-bound variables set
+        if (this.contextBoundVars.has(name)) {
+            this.contextBoundVars.delete(name);
+
+            // If it's also a root parameter, remove it from there too
+            if (this.rootParams.has(name)) {
+                this.rootParams.delete(name);
+            }
+        }
+    }
     addArrayPatternElement(name: string): void {
         this.arrayPatternElements.add(name);
     }

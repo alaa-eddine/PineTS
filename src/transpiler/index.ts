@@ -889,43 +889,101 @@ function transformReturnStatement(node: any, scopeManager: ScopeManager): void {
                 return prop;
             });
         } else if (node.argument.type === 'Identifier') {
+            transformIdentifier(node.argument, scopeManager);
+            if (node.argument.type === 'Identifier') {
+                addArrayAccess(node.argument, scopeManager);
+            }
             // Handle identifier return values
-            const [scopedName, kind] = scopeManager.getVariable(node.argument.name);
-            node.argument = {
-                type: 'MemberExpression',
-                object: {
-                    type: 'MemberExpression',
-                    object: {
-                        type: 'Identifier',
-                        name: CONTEXT_NAME,
-                    },
-                    property: {
-                        type: 'Identifier',
-                        name: kind,
-                    },
-                    computed: false,
-                },
-                property: {
-                    type: 'Identifier',
-                    name: scopedName,
-                },
-                computed: false,
-            };
+            // const [scopedName, kind] = scopeManager.getVariable(node.argument.name);
+            // node.argument = {
+            //     type: 'MemberExpression',
+            //     object: {
+            //         type: 'MemberExpression',
+            //         object: {
+            //             type: 'Identifier',
+            //             name: CONTEXT_NAME,
+            //         },
+            //         property: {
+            //             type: 'Identifier',
+            //             name: kind,
+            //         },
+            //         computed: false,
+            //     },
+            //     property: {
+            //         type: 'Identifier',
+            //         name: scopedName,
+            //     },
+            //     computed: false,
+            // };
 
-            // Add [0] array access
-            node.argument = {
-                type: 'MemberExpression',
-                object: node.argument,
-                property: {
-                    type: 'Literal',
-                    value: 0,
-                },
-                computed: true,
-            };
+            // // Add [0] array access
+            // node.argument = {
+            //     type: 'MemberExpression',
+            //     object: node.argument,
+            //     property: {
+            //         type: 'Literal',
+            //         value: 0,
+            //     },
+            //     computed: true,
+            // };
         }
 
         if (curScope === 'fn') {
             //for nested functions : wrap the return argument in a CallExpression with math._precision(<statement>)
+            // Process different types of return arguments
+            if (
+                node.argument.type === 'Identifier' &&
+                scopeManager.isContextBound(node.argument.name) &&
+                !scopeManager.isRootParam(node.argument.name)
+            ) {
+                // For context-bound identifiers, add [0] array access if not already an array access
+                node.argument = {
+                    type: 'MemberExpression',
+                    object: node.argument,
+                    property: {
+                        type: 'Literal',
+                        value: 0,
+                    },
+                    computed: true,
+                };
+            } else if (node.argument.type === 'MemberExpression') {
+                // For member expressions, check if the object is context-bound
+                if (
+                    node.argument.object.type === 'Identifier' &&
+                    scopeManager.isContextBound(node.argument.object.name) &&
+                    !scopeManager.isRootParam(node.argument.object.name)
+                ) {
+                    // Transform array indices first if not already transformed
+                    if (!node.argument._indexTransformed) {
+                        transformArrayIndex(node.argument, scopeManager);
+                        node.argument._indexTransformed = true;
+                    }
+                }
+            } else if (
+                node.argument.type === 'BinaryExpression' ||
+                node.argument.type === 'LogicalExpression' ||
+                node.argument.type === 'ConditionalExpression' ||
+                node.argument.type === 'CallExpression'
+            ) {
+                // For complex expressions, walk the AST and transform all identifiers and expressions
+                walk.recursive(node.argument, scopeManager, {
+                    Identifier(node: any, state: ScopeManager) {
+                        transformIdentifier(node, state);
+                        // Add array access if needed
+                        if (node.type === 'Identifier' && !node._arrayAccessed) {
+                            addArrayAccess(node, state);
+                            node._arrayAccessed = true;
+                        }
+                    },
+                    MemberExpression(node: any) {
+                        transformMemberExpression(node, '', scopeManager);
+                    },
+                    CallExpression(node: any, state: ScopeManager) {
+                        transformCallExpression(node, state);
+                    },
+                });
+            }
+
             node.argument = {
                 type: 'CallExpression',
                 callee: {
@@ -1479,9 +1537,11 @@ function transformCallExpression(node: any, scopeManager: ScopeManager, namespac
 
 function transformFunctionDeclaration(node: any, scopeManager: ScopeManager): void {
     // Register function parameters as context-bound (but not as root params)
+    const boundParamNames = [];
     node.params.forEach((param: any) => {
         if (param.type === 'Identifier') {
             scopeManager.addContextBoundVar(param.name, false);
+            boundParamNames.push(param.name);
         }
     });
 

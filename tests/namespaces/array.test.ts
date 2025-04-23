@@ -87,7 +87,7 @@ describe('Array', () => {
         // console.log('STDEV', part_stdev);
         // console.log('STDEV_BIASED', part_stdev_biased);
 
-        expect(part_sum).toEqual(expected_sum);
+        expect(part_sum).toEqual(expected_sum); //FIXME : the sum is failing, need to check if the function implementation is wrong or the data set
         expect(part_first).toEqual(expected_first);
         expect(part_stdev).toEqual(expected_stdev);
         expect(part_stdev_biased).toEqual(expected_stdev_biased);
