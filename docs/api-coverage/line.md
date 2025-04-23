@@ -1,7 +1,3 @@
-### ⬅️ [API Coverage Index](../api-coverage.md)
-
----
-
 ## Line
 
 | Function                  | Status |

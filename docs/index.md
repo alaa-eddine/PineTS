@@ -9,9 +9,12 @@ permalink: /
 
 PineTS is a TypeScript implementation of the Pine Script language, allowing you to write trading indicators and strategies using TypeScript while leveraging the power of Pine Script's execution model and functions.
 
-## About
-
 With PineTS, you can create, test and visualize technical indicators using modern web technologies while maintaining compatibility with the Pine Script language features.
+
+<div class="cta-container" style="text-align: center; margin: 2rem 0;">
+  <a href="getting-started/" class="btn btn-primary fs-5 mb-4 mb-md-0 mr-2">Get Started →</a>
+  <a href="https://github.com/alaa-eddine/PineTS" class="btn btn-outline fs-5 mb-4 mb-md-0">View on GitHub</a>
+</div>
 
 <div class="chart-container">
     <div id="main-chart"></div>
@@ -24,7 +27,12 @@ With PineTS, you can create, test and visualize technical indicators using moder
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script src="./js/pinets.dev.browser.js"></script>
 <script src="./indicators/willvixfix/WillVixFix.js"></script>
-<script src="./indicators/willvixfix/chart.js"></script>
+<script src="./js/chart.js"></script>
+<style>
+    #main-chart td {
+        min-width: 0 !important;
+    }
+</style>
 
 ## Documentation
 
@@ -47,10 +55,6 @@ Click [here](indicators/willvixfix/index.html) to see the demo.
 
 The Squeeze Momentum indicator identifies when the market is "squeezing" (low volatility) and about to break out with increased momentum.
 Click [here](indicators/sqzmom/index.html) to see the demo.
-
-## Getting Started
-
-Visit the [GitHub repository](https://github.com/alaa-eddine/PineTS) to get started with PineTS.
 
 ---
 
