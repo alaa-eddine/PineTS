@@ -4,6 +4,19 @@ PineTS is a TypeScript implementation of the Pine Script language, allowing you 
 
 With PineTS, you can create, test and visualize technical indicators using modern web technologies while maintaining compatibility with the Pine Script language features.
 
+<div class="chart-container">
+    <div id="main-chart"></div>
+    <div id="indicator-chart"></div>
+</div>
+
+<script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
+<link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="./js/pinets.dev.browser.js"></script>
+<script src="./indicators/willvixfix/WillVixFix.js"></script>
+<script src="./indicators/willvixfix/chart.js"></script>
+
 ## Documentation
 
 ### [Language Coverage](lang-coverage.md)
