@@ -1,3 +1,9 @@
+---
+layout: default
+title: Math
+parent: API Coverage
+---
+
 ## Math Functions
 
 | Function        | Status |

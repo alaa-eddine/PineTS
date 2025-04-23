@@ -1,3 +1,9 @@
+---
+layout: default
+title: Label
+parent: API Coverage
+---
+
 ## Label
 
 | Function                       | Status |

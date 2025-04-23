@@ -1,3 +1,9 @@
+---
+layout: default
+title: Strategy
+parent: API Coverage
+---
+
 ## Strategy
 
 | Function                                       | Status |

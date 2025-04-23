@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Language Coverage
-nav_order: 2
+nav_order: 4
 permalink: /lang-coverage/
 ---
 

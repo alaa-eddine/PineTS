@@ -1,3 +1,9 @@
+---
+layout: default
+title: Map
+parent: API Coverage
+---
+
 ## Map
 
 | Function               | Status |

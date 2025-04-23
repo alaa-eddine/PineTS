@@ -1,3 +1,11 @@
+---
+layout: default
+title: Chart
+parent: API Coverage
+---
+
+## Chart
+
 ## Chart Point Functions
 
 | Function                   | Status |

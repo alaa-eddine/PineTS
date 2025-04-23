@@ -1,3 +1,9 @@
+---
+layout: default
+title: Matrix
+parent: API Coverage
+---
+
 ## Matrix
 
 | Function                    | Status |

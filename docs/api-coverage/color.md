@@ -1,3 +1,9 @@
+---
+layout: default
+title: Color
+parent: API Coverage
+---
+
 ## Color
 
 | Function                | Status |

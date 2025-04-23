@@ -1,3 +1,9 @@
+---
+layout: default
+title: Technical Analysis
+parent: API Coverage
+---
+
 ## Technical Analysis
 
 | Function          | Status |

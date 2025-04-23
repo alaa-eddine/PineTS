@@ -1,3 +1,9 @@
+---
+layout: default
+title: Array
+parent: API Coverage
+---
+
 ## Array
 
 | Function                                  | Status |

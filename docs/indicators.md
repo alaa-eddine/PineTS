@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Demo Indicators
-nav_order: 4
+nav_order: 3
 permalink: /indicators/
 has_children: false
 ---

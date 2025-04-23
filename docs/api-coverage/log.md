@@ -1,3 +1,9 @@
+---
+layout: default
+title: Log
+parent: API Coverage
+---
+
 ## Log
 
 | Function        | Status |

@@ -1,3 +1,9 @@
+---
+layout: default
+title: String
+parent: API Coverage
+---
+
 ## String
 
 | Function            | Status |

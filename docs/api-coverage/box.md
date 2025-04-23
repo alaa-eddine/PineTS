@@ -1,3 +1,9 @@
+---
+layout: default
+title: Box
+parent: API Coverage
+---
+
 ## Box
 
 | Function                       | Status |

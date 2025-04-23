@@ -1,3 +1,9 @@
+---
+layout: default
+title: Line
+parent: API Coverage
+---
+
 ## Line
 
 | Function                  | Status |

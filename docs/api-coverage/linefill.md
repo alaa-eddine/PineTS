@@ -1,3 +1,9 @@
+---
+layout: default
+title: Linefill
+parent: API Coverage
+---
+
 ## Linefill
 
 | Function               | Status |

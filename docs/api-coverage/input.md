@@ -1,3 +1,9 @@
+---
+layout: default
+title: Input
+parent: API Coverage
+---
+
 ## Input
 
 | Function            | Status |

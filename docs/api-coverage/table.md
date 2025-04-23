@@ -1,3 +1,9 @@
+---
+layout: default
+title: Table
+parent: API Coverage
+---
+
 ## Table
 
 | Function                            | Status |

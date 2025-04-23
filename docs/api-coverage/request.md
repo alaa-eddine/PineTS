@@ -1,3 +1,9 @@
+---
+layout: default
+title: Request
+parent: API Coverage
+---
+
 ## Request
 
 | Function                      | Status |
