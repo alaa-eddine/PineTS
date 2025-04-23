@@ -1,3 +1,10 @@
+---
+layout: default
+title: Language Coverage
+nav_order: 2
+permalink: /lang-coverage/
+---
+
 # PineTS Language Coverage
 
 This document lists the features of the PineTS language and their status.

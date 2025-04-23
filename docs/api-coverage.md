@@ -1,3 +1,11 @@
+---
+layout: default
+title: API Coverage
+nav_order: 3
+permalink: /api-coverage/
+has_children: true
+---
+
 # Pine Script API Implementation Progress
 
 This is a list of all the functions in the Pine Script API and their implementation status.
