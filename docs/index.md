@@ -1,6 +1,15 @@
-# Introduction
+---
+layout: home
+title: Home
+nav_order: 1
+permalink: /
+---
+
+# PineTS
 
 PineTS is a TypeScript implementation of the Pine Script language, allowing you to write trading indicators and strategies using TypeScript while leveraging the power of Pine Script's execution model and functions.
+
+## About
 
 With PineTS, you can create, test and visualize technical indicators using modern web technologies while maintaining compatibility with the Pine Script language features.
 
