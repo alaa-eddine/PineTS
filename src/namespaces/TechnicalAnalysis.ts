@@ -210,6 +210,67 @@ export class TechnicalAnalysis {
         const idx = this.context.idx;
         return [[this.context.precision(supertrend[idx]), direction[idx]]];
     }
+
+    crossover(source1, source2) {
+        // Get current values
+        const current1 = Array.isArray(source1) ? source1[0] : source1;
+        const current2 = Array.isArray(source2) ? source2[0] : source2;
+
+        // Get previous values
+        const prev1 = Array.isArray(source1) ? source1[1] : this.context.data.series[source1][1];
+        const prev2 = Array.isArray(source2) ? source2[1] : this.context.data.series[source2][1];
+
+        // Check if source1 crossed above source2
+        return prev1 < prev2 && current1 > current2;
+    }
+
+    crossunder(source1, source2) {
+        // Get current values
+        const current1 = Array.isArray(source1) ? source1[0] : source1;
+        const current2 = Array.isArray(source2) ? source2[0] : source2;
+
+        // Get previous values
+        const prev1 = Array.isArray(source1) ? source1[1] : this.context.data.series[source1][1];
+        const prev2 = Array.isArray(source2) ? source2[1] : this.context.data.series[source2][1];
+
+        // Check if source1 crossed below source2
+        return prev1 > prev2 && current1 < current2;
+    }
+
+    pivothigh(source, _leftbars, _rightbars) {
+        //handle the case where source is not provided
+        if (_rightbars == undefined) {
+            _rightbars = _leftbars;
+            _leftbars = source;
+
+            //by default source is
+            source = this.context.data.high;
+        }
+        const leftbars = Array.isArray(_leftbars) ? _leftbars[0] : _leftbars;
+        const rightbars = Array.isArray(_rightbars) ? _rightbars[0] : _rightbars;
+
+        const result = pivothigh(source.slice(0).reverse(), leftbars, rightbars);
+        const idx = this.context.idx;
+        return this.context.precision(result[idx]);
+    }
+
+    pivotlow(source, _leftbars, _rightbars) {
+        //handle the case where source is not provided
+        if (_rightbars == undefined) {
+            _rightbars = _leftbars;
+            _leftbars = source;
+
+            //by default source is
+            source = this.context.data.low;
+        }
+
+        const leftbars = Array.isArray(_leftbars) ? _leftbars[0] : _leftbars;
+        const rightbars = Array.isArray(_rightbars) ? _rightbars[0] : _rightbars;
+
+        const result = pivotlow(source.slice(0).reverse(), leftbars, rightbars);
+        const idx = this.context.idx;
+        return this.context.precision(result[idx]);
+    }
 }
 
 //Here we did not use indicatorts implementation because it uses a different smoothing method which gives slightly different results that pine script
@@ -713,6 +774,78 @@ function calculateSupertrend(high: number[], low: number[], close: number[], fac
     }
 
     return [supertrend, direction];
+}
+
+// Pivot high identifies a local high point
+function pivothigh(source: number[], leftbars: number, rightbars: number): number[] {
+    const result = new Array(source.length).fill(NaN);
+
+    // We need at least leftbars + rightbars + 1 (for the center point) values
+    for (let i = leftbars + rightbars; i < source.length; i++) {
+        const pivot = source[i - rightbars];
+        let isPivot = true;
+
+        // Check if the pivot is higher than all bars to the left within leftbars range
+        for (let j = 1; j <= leftbars; j++) {
+            if (source[i - rightbars - j] >= pivot) {
+                isPivot = false;
+                break;
+            }
+        }
+
+        // Check if the pivot is higher than all bars to the right within rightbars range
+        if (isPivot) {
+            for (let j = 1; j <= rightbars; j++) {
+                if (source[i - rightbars + j] >= pivot) {
+                    isPivot = false;
+                    break;
+                }
+            }
+        }
+
+        // If this is a pivot point, set its value, otherwise keep NaN
+        if (isPivot) {
+            result[i] = pivot;
+        }
+    }
+
+    return result;
+}
+
+// Pivot low identifies a local low point
+function pivotlow(source: number[], leftbars: number, rightbars: number): number[] {
+    const result = new Array(source.length).fill(NaN);
+
+    // We need at least leftbars + rightbars + 1 (for the center point) values
+    for (let i = leftbars + rightbars; i < source.length; i++) {
+        const pivot = source[i - rightbars];
+        let isPivot = true;
+
+        // Check if the pivot is lower than all bars to the left within leftbars range
+        for (let j = 1; j <= leftbars; j++) {
+            if (source[i - rightbars - j] <= pivot) {
+                isPivot = false;
+                break;
+            }
+        }
+
+        // Check if the pivot is lower than all bars to the right within rightbars range
+        if (isPivot) {
+            for (let j = 1; j <= rightbars; j++) {
+                if (source[i - rightbars + j] <= pivot) {
+                    isPivot = false;
+                    break;
+                }
+            }
+        }
+
+        // If this is a pivot point, set its value, otherwise keep NaN
+        if (isPivot) {
+            result[i] = pivot;
+        }
+    }
+
+    return result;
 }
 
 export default TechnicalAnalysis;

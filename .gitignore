@@ -141,3 +141,4 @@ _progress
 _experiments
 *.expr.*
 *.tst.*
+.cursor
