@@ -11,6 +11,13 @@ PineTS is a TypeScript implementation of the Pine Script language, allowing you 
 
 With PineTS, you can create, test and visualize technical indicators using modern web technologies while maintaining compatibility with the Pine Script language features.
 
+# Demo
+
+This is a BTCUSDT chart with the Williams Vix Fix indicator applied.
+The chart data and indicator are generated using PineTS, showcasing the capabilities of the library in creating interactive and dynamic charts.
+
+The visualization is done using the [Lightweight Charts](https://tradingview.github.io/lightweight-charts/) library.
+
 <div class="cta-container" style="text-align: center; margin: 2rem 0;">
   <a href="getting-started/" class="btn btn-primary fs-5 mb-4 mb-md-0 mr-2">Get Started →</a>
   <a href="https://github.com/alaa-eddine/PineTS" class="btn btn-outline fs-5 mb-4 mb-md-0">View on GitHub</a>
