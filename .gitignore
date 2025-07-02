@@ -143,3 +143,4 @@ _experiments
 *.tst.*
 .cursor
 config.json
+bfg.jar
