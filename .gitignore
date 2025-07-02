@@ -142,3 +142,4 @@ _experiments
 *.expr.*
 *.tst.*
 .cursor
+config.json
