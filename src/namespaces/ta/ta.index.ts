@@ -33,8 +33,10 @@ import { linreg } from './methods/linreg';
 import { lowest } from './methods/lowest';
 import { lowestbars } from './methods/lowestbars';
 import { macd } from './methods/macd';
+import { max } from './methods/max';
 import { median } from './methods/median';
 import { mfi } from './methods/mfi';
+import { min } from './methods/min';
 import { mode } from './methods/mode';
 import { mom } from './methods/mom';
 import { nvi } from './methods/nvi';
@@ -103,8 +105,10 @@ const methods = {
   lowest,
   lowestbars,
   macd,
+  max,
   median,
   mfi,
+  min,
   mode,
   mom,
   nvi,
@@ -172,8 +176,10 @@ export class TechnicalAnalysis {
   lowest: ReturnType<typeof methods.lowest>;
   lowestbars: ReturnType<typeof methods.lowestbars>;
   macd: ReturnType<typeof methods.macd>;
+  max: ReturnType<typeof methods.max>;
   median: ReturnType<typeof methods.median>;
   mfi: ReturnType<typeof methods.mfi>;
+  min: ReturnType<typeof methods.min>;
   mode: ReturnType<typeof methods.mode>;
   mom: ReturnType<typeof methods.mom>;
   nvi: ReturnType<typeof methods.nvi>;
