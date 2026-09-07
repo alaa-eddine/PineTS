@@ -226,13 +226,15 @@ export class PineColor {
         bottom_color = resolveColor(bottom_color);
         top_color = resolveColor(top_color);
 
-        // If any numeric arg is na (NaN/null/undefined), return na
-        if (value == null || (typeof value === 'number' && isNaN(value))) return undefined;
-        if (bottom_value == null || (typeof bottom_value === 'number' && isNaN(bottom_value))) return undefined;
-        if (top_value == null || (typeof top_value === 'number' && isNaN(top_value))) return undefined;
+        // If any numeric arg is na (NaN/null/undefined), return na.
+        // NaN is the runtime's na sentinel (see NAHelper.__value), so na colors
+        // keep a single consistent representation end-to-end.
+        if (value == null || (typeof value === 'number' && isNaN(value))) return NaN;
+        if (bottom_value == null || (typeof bottom_value === 'number' && isNaN(bottom_value))) return NaN;
+        if (top_value == null || (typeof top_value === 'number' && isNaN(top_value))) return NaN;
         // If either color is na, return na
-        if (bottom_color == null || (typeof bottom_color === 'number' && isNaN(bottom_color))) return undefined;
-        if (top_color == null || (typeof top_color === 'number' && isNaN(top_color))) return undefined;
+        if (bottom_color == null || (typeof bottom_color === 'number' && isNaN(bottom_color))) return NaN;
+        if (top_color == null || (typeof top_color === 'number' && isNaN(top_color))) return NaN;
 
         // Clamp position between 0 and 1
         let t = 0;

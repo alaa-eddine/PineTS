@@ -54,7 +54,10 @@ export function isArrayOfType(array: any[], type: PineArrayType) {
 }
 
 export function isValueOfType(value: any, type: PineArrayType) {
-    // na (NaN) is compatible with all types in Pine Script
+    // na (NaN or undefined) is compatible with all types in Pine Script.
+    // Some namespace functions (e.g. color.from_gradient historically) may
+    // represent an na value as undefined, so treat it exactly like NaN.
+    if (value === undefined) return true;
     if (typeof value === 'number' && isNaN(value)) return true;
     // Untyped arrays (e.g. array.new<chart.point>()) accept any value
     if (type === PineArrayType.any) return true;
