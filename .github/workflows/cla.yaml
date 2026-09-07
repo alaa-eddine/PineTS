@@ -30,4 +30,4 @@ jobs:
                   remote-organization-name: 'LuxAlgo'
                   remote-repository-name: 'cla-signatures'
                   # Allow bots to bypass the check
-                  allowlist: bot*,dependabot[bot],greenkeeper[bot]
+                  allowlist: bot*,dependabot[bot],greenkeeper[bot],claude
