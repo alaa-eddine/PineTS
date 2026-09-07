@@ -775,44 +775,36 @@ plot(close)
 });
 
 describe('Pine Script Transpilation - Bug Fixes', () => {
-    describe('Inline Comments', () => {
-        it('should handle inline comments', () => {
-            const code = `
-//@version=5
-indicator("Inline comment in type field repro")
-type T
-    int x // inline comment after a field
-var array<T> xs = array.new<T>()
-`;
-            const result = transpile(code);
-            const jsCode = result.toString();
-            expect(jsCode).toBeDefined();
-            expect(jsCode).toContain('Type(');
-        });
-    });
-
-    describe('If / Else with Comments', () => {
-        it('should allow comments between if block and else', () => {
+    describe('Comment tokens in layout positions', () => {
+        it('accepts a trailing comment on a user-defined type field', () => {
             const code = `
 //@version=6
-indicator("else if comment")
-
-x = 1
-var float y = na
-
-if x == 1
-    y := 10
-// comment between if and else
-else if x == 2
-    y := 20
-else
-    y := 30
-
-plot(y)
+indicator("udt field comment")
+type Level
+    float price // the level itself
+    int hits = 0 // how often it was tagged
+var Level lv = Level.new(close)
+plot(lv.price)
 `;
-            const result = transpile(code);
-            const jsCode = result.toString();
-            expect(jsCode).toBeDefined();
+            const jsCode = transpile(code).toString();
+            expect(jsCode).toContain('Type(');
+        });
+
+        it('accepts comment-only lines between an if block and its else', () => {
+            const code = `
+//@version=6
+indicator("if else comment")
+float v = na
+if close > open
+    v := 1
+    // note inside the block
+// note between the branches
+else
+    v := -1
+plot(v)
+`;
+            const jsCode = transpile(code).toString();
+            expect(jsCode).toContain('else');
         });
     });
 

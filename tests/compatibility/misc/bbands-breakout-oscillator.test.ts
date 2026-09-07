@@ -6,31 +6,52 @@ import * as path from 'path';
 import { Provider } from '@pinets/marketData/Provider.class';
 import { deserialize, deepEqual } from '../lib/serializer.js';
 
-describe('MISC Namespace', () => {
-    it('SIMPLE-ARITHMETICS regression test', async () => {
+describe('UNKNOWN Namespace - BBANDS-BREAKOUT-OSCILLATOR Method', () => {
+    it('should calculate BBANDS-BREAKOUT-OSCILLATOR correctly with native series and variable series', async () => {
         const pineTS = new PineTS(Provider.Mock, 'BTCUSDC', 'D', null, new Date('2025-01-01').getTime(), new Date('2025-11-20').getTime());
 
         const { result, plots } = await pineTS.run((context) => {
-            const { close, open } = context.data;
-                const { plot, plotchar } = context.core;
+            const { close } = context.data;
+                const ta = context.ta;
+                const math = context.math;
+                const input = context.input;
+                const { plot, plotchar } = context.pine;
             
-                const close_minus_open = close - open;
-                const close_plus_open = close + open;
+                const length = input.int(14, 'Length');
+                const mult = input.float(1.0, 'Mult');
+                const src = close;
             
-                const oo = open;
-                const cc = close;
+                const dev = ta.stdev(src, length) * mult;
+                const basis = ta.ema(src, length);
             
-                const cc_minus_oo = cc - oo;
-                const cc_plus_oo = cc + oo;
+                const upper = basis + dev;
+                const lower = basis - dev;
             
-                plotchar(cc_minus_oo, '_plotchar');
-                plot(cc_plus_oo, '_plot');
+                let bull = 0.0;
+                let bear = 0.0;
+                let bull_den = 0.0;
+                let bear_den = 0.0;
+            
+                for (let i = 0; i < length; i++) {
+                    bull += math.max(src[i] - upper[i], 0);
+                    bear += math.max(lower[i] - src[i], 0);
+                    bull_den += math.abs(src[i] - upper[i]);
+                    bear_den += math.abs(lower[i] - src[i]);
+                }
+            
+                bull = (bull / bull_den) * 100;
+                bear = (bear / bear_den) * 100;
+                const bullish = bull > bear;
+            
+                plotchar(bullish, '_plotchar');
+                plot(bull, '_plot');
             
                 return {
-                    close_minus_open,
-                    close_plus_open,
-                    cc_minus_oo,
-                    cc_plus_oo,
+                    upper,
+                    lower,
+                    bull,
+                    bear,
+                    bullish,
                 };
         });
 
@@ -62,7 +83,7 @@ describe('MISC Namespace', () => {
         }
 
         // Load expected data from JSON file using custom deserializer
-        const expectFilePath = path.join(__dirname, 'data/simple-arithmetics.expect.json');
+        const expectFilePath = path.join(__dirname, 'bbands-breakout-oscillator.expect.json');
         const expectedData = deserialize(fs.readFileSync(expectFilePath, 'utf-8'));
 
         // Assert results using custom deep equality (handles NaN correctly)

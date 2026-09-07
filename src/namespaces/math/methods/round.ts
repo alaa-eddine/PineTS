@@ -2,30 +2,15 @@
 
 import { Series } from '../../../Series';
 
-// Round half away from zero (TV semantics), unlike JS Math.round which rounds toward +∞.
-function roundHalfAwayFromZero(x: number): number {
-    if (x !== x) return NaN; // NaN check
-    return Math.sign(x) * Math.round(Math.abs(x));
-}
+// Pine rounds halves away from zero; JS Math.round rounds halves toward +Infinity.
+const roundHalfAwayFromZero = (x: number): number => (Number.isNaN(x) ? NaN : Math.sign(x) * Math.round(Math.abs(x)));
 
 export function round(context: any) {
     return (source: any, precision?: any) => {
         const value = Series.from(source).get(0);
-
-        if (precision === undefined || precision === null) {
-            // No precision specified - round to nearest integer
-            return roundHalfAwayFromZero(value);
-        }
-
-        const precisionValue = Series.from(precision).get(0);
-
-        if (precisionValue === 0) {
-            return roundHalfAwayFromZero(value);
-        }
-
-        // Round to specified decimal places
-        const multiplier = Math.pow(10, precisionValue);
-        return roundHalfAwayFromZero(value * multiplier) / multiplier;
+        const digits = precision === undefined || precision === null ? 0 : Series.from(precision).get(0);
+        if (!digits) return roundHalfAwayFromZero(value);
+        const scale = 10 ** digits;
+        return roundHalfAwayFromZero(value * scale) / scale;
     };
 }
-

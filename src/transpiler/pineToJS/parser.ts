@@ -194,11 +194,13 @@ export class Parser {
         return token.value;
     }
 
+    // Newline and comment tokens carry no syntax of their own.
+    isLayoutToken() {
+        return this.match(TokenType.NEWLINE) || this.match(TokenType.COMMENT);
+    }
+
     skipNewlines(allowIndent = false) {
-        // while (this.match(TokenType.NEWLINE)) {
-        while (this.match(TokenType.NEWLINE) || this.match(TokenType.COMMENT)) {
-            this.advance();
-        }
+        while (this.isLayoutToken()) this.advance();
         if (allowIndent && this.match(TokenType.INDENT)) {
             this.advance();
         }
@@ -1207,7 +1209,7 @@ export class Parser {
         const consequent = this.parseBlock();
         let alternate = null;
 
-        // Skip newlines/comments between block end and potential 'else'
+        // An 'else' may follow the block after blank or comment-only lines.
         this.skipNewlines();
 
         if (this.match(TokenType.KEYWORD, 'else')) {

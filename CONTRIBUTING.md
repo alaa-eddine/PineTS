@@ -331,7 +331,7 @@ npx prettier --write .
 
 ## License and CLA
 
-By contributing to PineTS, you agree to the terms of the [CLA](https://github.com/QuantForgeOrg/cla-signatures/blob/main/CLA.md).
+By contributing to PineTS, you agree to the terms of the [CLA](https://github.com/LuxAlgo/cla-signatures/blob/main/CLA.md).
 
 ---
 
