@@ -34,6 +34,7 @@ This is a list of all the functions in the Pine Script API and their implementat
 - [Matrix](./api-coverage/matrix.md)
 - [Plot](./api-coverage/plot.md)
 - [Request](./api-coverage/request.md)
+- [Footprint](./api-coverage/footprint.md)
 - [String](./api-coverage/string.md)
 - [Strategy](./api-coverage/strategy.md)
 - [Table](./api-coverage/table.md)

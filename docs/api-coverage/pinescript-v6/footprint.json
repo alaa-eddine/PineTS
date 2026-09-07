@@ -1,0 +1,25 @@
+{
+    "footprint": {
+        "footprint()": true,
+        "footprint.buy_volume()": true,
+        "footprint.sell_volume()": true,
+        "footprint.total_volume()": true,
+        "footprint.delta()": true,
+        "footprint.poc()": true,
+        "footprint.vah()": true,
+        "footprint.val()": true,
+        "footprint.rows()": true,
+        "footprint.get_row_by_price()": true
+    },
+    "volume_row": {
+        "volume_row()": true,
+        "volume_row.up_price()": true,
+        "volume_row.down_price()": true,
+        "volume_row.buy_volume()": true,
+        "volume_row.sell_volume()": true,
+        "volume_row.total_volume()": true,
+        "volume_row.delta()": true,
+        "volume_row.has_buy_imbalance()": true,
+        "volume_row.has_sell_imbalance()": true
+    }
+}

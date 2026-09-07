@@ -19,6 +19,35 @@ export interface Kline {
 }
 
 /**
+ * Executed volume at one price level of a bar's volume footprint, split by
+ * aggressor side. How volume is attributed to "buy" vs "sell" is the data
+ * source's decision (taker side, intrabar direction, ...) — PineTS only sums.
+ */
+export interface FootprintLevel {
+    /** Level price — the LOW edge of the price bucket this level covers. */
+    price: number;
+    /** Volume executed by buy-aggressors (ask lifts) at this level. */
+    buyVolume: number;
+    /** Volume executed by sell-aggressors (bid hits) at this level. */
+    sellVolume: number;
+}
+
+/**
+ * The volume footprint of ONE bar — a sidecar to the bar's {@link Kline}, keyed by
+ * the same `openTime`. Levels may sit on any price grid: `request.footprint()`
+ * re-bins them into rows of `ticks_per_row × syminfo.mintick` itself, so a source
+ * serves its finest available granularity and never needs to know the row size.
+ */
+export interface FootprintBar {
+    /** Bar open time (epoch ms) — matches the corresponding kline's `openTime`. */
+    openTime: number;
+    /** Price step the levels were bucketed on. Informational only. */
+    tick?: number;
+    /** Price levels, in any order. Levels with no volume may be omitted. */
+    levels: FootprintLevel[];
+}
+
+/**
  * Interval duration in milliseconds, keyed by normalized interval strings.
  * Used by providers for pagination and date-range estimation.
  *

@@ -30,6 +30,8 @@ import { BoxHelper } from './namespaces/box/BoxHelper';
 import { LinefillHelper } from './namespaces/linefill/LinefillHelper';
 import { PolylineHelper } from './namespaces/polyline/PolylineHelper';
 import { TableHelper } from './namespaces/table/TableHelper';
+import { FootprintHelper } from './namespaces/footprint/FootprintHelper';
+import { VolumeRowHelper } from './namespaces/footprint/VolumeRowHelper';
 import { Ticker } from './namespaces/Ticker';
 import type { IndicatorOptions } from './types/PineTypes';
 
@@ -540,6 +542,21 @@ export class Context {
 
         // Register all drawing helpers for streaming rollback and plot sync
         this._drawingHelpers = [labelHelper, lineHelper, boxHelper, linefillHelper, polylineHelper, tableHelper];
+
+        // footprint / volume_row namespaces — read-only views over the objects that
+        // request.footprint() returns (no drawings, nothing to roll back).
+        const footprintHelper = new FootprintHelper(this);
+        this.bindContextObject(
+            footprintHelper,
+            ['any', 'param', 'buy_volume', 'sell_volume', 'total_volume', 'delta', 'poc', 'vah', 'val', 'rows', 'get_row_by_price'],
+            'footprint',
+        );
+        const volumeRowHelper = new VolumeRowHelper(this);
+        this.bindContextObject(
+            volumeRowHelper,
+            ['any', 'param', 'up_price', 'down_price', 'buy_volume', 'sell_volume', 'total_volume', 'delta', 'has_buy_imbalance', 'has_sell_imbalance'],
+            'volume_row',
+        );
 
         // color namespace
         const colorHelper = new PineColor(this);

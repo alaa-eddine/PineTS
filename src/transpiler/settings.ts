@@ -18,6 +18,8 @@ export const NAMESPACES_LIKE = [
     'linefill',
     'polyline',
     'table',
+    'footprint',
+    'volume_row',
     'na',
     'alert',
     'time',
@@ -33,7 +35,7 @@ export const NAMESPACES_LIKE = [
 ];
 
 // Async methods that require await keyword (format: 'namespace.method')
-export const ASYNC_METHODS = ['request.security', 'request.security_lower_tf'];
+export const ASYNC_METHODS = ['request.security', 'request.security_lower_tf', 'request.footprint'];
 
 // Host-bound Pine built-ins whose values come from the UI/host environment (viewport,
 // theme, chart-type) rather than from market data. PineTS provides sensible defaults
@@ -149,6 +151,8 @@ export const NAMESPACE_COLLISION_NAMES = new Set([
     'strategy',
     'log',
     'str',
+    'footprint',
+    'volume_row',
     // Constant/enum namespaces (member access only). TradingView allows user
     // variables to share these names while namespace member access still
     // works (e.g. `position = 1` alongside `position.top_right`), so the
@@ -245,6 +249,9 @@ export const CONTEXT_PINE_VARS = [
     'matrix',
     'log',
     'runtime',
+    // order-flow object namespaces (request.footprint)
+    'footprint',
+    'volume_row',
     //types
     'Type', //UDT
     'bool',

@@ -5,6 +5,7 @@
     "request.earnings()": false,
     "request.economic()": false,
     "request.financial()": false,
+    "request.footprint()": true,
     "request.quandl()": false,
     "request.security()": true,
     "request.security_lower_tf()": true,

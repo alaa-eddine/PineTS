@@ -1,5 +1,13 @@
 # Change Log
 
+## [Unreleased]
+
+### Added
+
+- **`request.footprint()` and the `footprint` / `volume_row` types**: Pine v6's volume footprint API — `request.footprint(ticks_per_row, va_percent = 70, imbalance_percent = 300) → footprint`, the `footprint.*()` accessors (`buy_volume`, `sell_volume`, `total_volume`, `delta`, `poc`, `vah`, `val`, `rows`, `get_row_by_price`) and the `volume_row.*()` accessors (`up_price`, `down_price`, `buy_volume`, `sell_volume`, `total_volume`, `delta`, `has_buy_imbalance`, `has_sell_imbalance`), in both function form and method form (`fp.poc().up_price()`), with typed declarations, `array<volume_row>`, history access (`fp[1]`) and the `footprint(na)` / `volume_row(na)` casts. The order-flow data comes from the market data source through a new **optional provider surface, `IFootprintProvider.getFootprintData(tickerId, timeframe, limit?, sDate?, eDate?) → FootprintBar[]`** (`{ openTime, tick?, levels: [{ price, buyVolume, sellVolume }] }`, exported with `FootprintBar` / `FootprintLevel` / `hasFootprintData`) — the provider serves raw price levels at its own granularity and PineTS owns the Pine semantics: rows of `ticks_per_row × syminfo.mintick` anchored at price 0 and contiguous across the bar's levels, POC = largest total (ties → lowest row), value area grown from the POC taking the larger neighbour (ties upward) until `va_percent` of the volume is inside, diagonal imbalances (buy vs. the sell one row below, sell vs. the buy one row above) at `imbalance_percent / 100`. Streaming: the footprint of the forming bar is re-read from the source whenever the market data changes. A source without the surface, a bar it does not cover, a missing `mintick`, or a call inside a `request.security()` expression all yield `na` (never a throw); a non-positive `ticks_per_row` is a runtime error. Tests: `tests/namespaces/request-footprint.test.ts` (hand-computed reference footprint for aggregates, rows, POC/VA, imbalances at 300 % and 100 %, `get_row_by_price` edges, tie-breaks, `na` paths, live tail refresh, and two real Pine v6 scripts covering the reference manual's syntax). Docs: `docs/api-coverage/footprint.md`, `docs/data-providers.md` (provider contract), `docs/architecture/namespaces/request.md`.
+
+---
+
 ## [v0.9.33]
 
 ### Fixed

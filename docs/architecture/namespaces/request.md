@@ -44,6 +44,15 @@ The `request.security` function relies on caching secondary contexts (HTF contex
 ### 2. Tuple Handling
 When `request.security` returns a tuple (e.g., from `[open, close]`), it wraps the result in a **2D array** `[[val1, val2]]`. This signals to `Context.init()` that the result is a tuple to be destructured, not a history array.
 
+### 3. `request.footprint` — Order-Flow Data From the Provider
+
+`request.footprint(ticks_per_row, va_percent = 70, imbalance_percent = 300)` does not spawn a secondary context: it asks the chart's own **data source** for order-flow data through the optional `getFootprintData(tickerId, timeframe, limit?, sDate?, eDate?)` surface (`IFootprintProvider`, `src/marketData/IProvider.ts`). The provider returns one `FootprintBar` per bar — `{ openTime, tick?, levels: [{ price, buyVolume, sellVolume }] }` — at whatever price granularity it has. The method is in `ASYNC_METHODS`, so the transpiler `await`s it like `request.security`.
+
+*   **Store** (`context.cache.__footprint`): bars keyed by `openTime`, built `footprint` objects keyed by bar and parameter set, and the `dataVersion` the store reflects. The first call loads the whole history (`sDate` = first bar, `eDate` = last bar's `closeTime`); when `context.dataVersion` moves (streaming: forming bar ticked, new bars appended) the store re-requests from the current bar's `openTime` and replaces those bars — the forming bar's footprint grows between polls.
+*   **Semantics live in `src/namespaces/footprint/`**, not in the provider, so every source shares one behavior: `FootprintObject.build()` bins levels into rows of `ticks_per_row × syminfo.mintick` anchored at price 0 (contiguous from the lowest to the highest level, empty rows included), then derives the POC (largest total, ties → lowest row), the value area (grow from the POC, larger neighbour first, ties upward, until `va_percent` of the volume is inside) and the diagonal imbalance flags (buy vs. the sell one row below, sell vs. the buy one row above, threshold `imbalance_percent / 100`). Rows are `VolumeRowObject`s; both classes carry instance methods mirroring their namespaces so the transpiler's method-call form (`fp.poc()`, emitted as `obj?.poc?.()`) and the function form (`footprint.poc(fp)`) resolve identically.
+*   **`na` paths**: no provider surface or no `mintick` → a single `context.warn(…, 'request.footprint')` and `na` on every bar; a bar the provider omitted → `na`; every `footprint.*` / `volume_row.*` accessor accepts `na` and answers `na` / `false`. Inside a secondary context the call returns `na` (Pine forbids nesting request calls).
+*   **Transpiler wiring**: `footprint` and `volume_row` are listed in `CONTEXT_PINE_VARS` (injection), `NAMESPACES_LIKE` (the `footprint(na)` type-cast → `footprint.any(na)`) and `NAMESPACE_COLLISION_NAMES` (a user variable named `footprint` is renamed). Typed declarations (`footprint fp = …`, `array<volume_row>`) need no special casing — the Pine parser treats them like any object type.
+
 ## Generating the Barrel File
 
 To regenerate the `request.index.ts` file:

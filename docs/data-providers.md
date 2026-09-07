@@ -426,6 +426,34 @@ A ticker may carry a chart-type modifier suffix — `"BTCUSDT;heikinashi"` (see 
 -   **A source that OWNS a chart-type transform** (typically an embedding host implementing `IProvider` directly, not via `BaseProvider`) receives the extended ticker verbatim and must serve the derived bars for `"SYM;heikinashi"` and raw bars for `"SYM"` — the modifier is the only thing distinguishing the two requests.
 -   **PineTS itself never transforms bars** — the modifier is routing metadata, end to end.
 
+### Volume Footprints (`request.footprint()`)
+
+Pine's `request.footprint()` needs order-flow data that plain candles do not carry. A provider opts in by implementing the optional `IFootprintProvider` surface next to `IProvider` — the same `(tickerId, timeframe, limit, sDate, eDate)` vocabulary as `getMarketData`, returning one `FootprintBar` per bar it can serve:
+
+```typescript
+import type { FootprintBar } from 'pinets';
+
+class MyProvider extends BaseProvider {
+    // ...getMarketData / getSymbolInfo as above...
+
+    async getFootprintData(tickerId: string, timeframe: string, limit?: number, sDate?: number, eDate?: number): Promise<FootprintBar[]> {
+        const bars = await fetchMyFootprints(tickerId, timeframe, sDate, eDate);
+        return bars.map((bar) => ({
+            openTime: bar.time, // matches the kline's openTime
+            tick: bar.grid, // optional: the price step the levels sit on
+            levels: bar.levels.map((l) => ({ price: l.price, buyVolume: l.buy, sellVolume: l.sell })),
+        }));
+    }
+}
+```
+
+The contract:
+
+-   **Levels are raw, rows are PineTS's job.** Serve the finest price granularity you have; `request.footprint()` re-bins levels into rows of `ticks_per_row × syminfo.mintick` and derives POC, value area and imbalances itself, so every source shares one set of Pine semantics. A level's `price` is the **low edge** of its bucket. Make sure `getSymbolInfo()` returns a correct `mintick` — without it rows cannot be sized and the call returns `na`.
+-   **Buy/sell is your classification** (aggressor side for trade feeds, intrabar direction for candle-derived footprints). PineTS only sums.
+-   **Omit what you cannot serve.** Bars missing from the result read as `na` in the script. A provider without `getFootprintData` makes every `request.footprint()` call return `na` (with a single runtime warning).
+-   **Call pattern.** The first call covers the loaded history (`sDate` = first bar's `openTime`, `eDate` = last bar's `closeTime`, `limit` = bar count). Whenever the market data changes afterwards (a forming bar ticks, new bars arrive), PineTS asks again from the forming bar's `openTime` onward and replaces what it holds for the returned bars — so a live source just answers with its current in-memory state for the tail.
+
 ---
 
 ## Timeframe Reference
