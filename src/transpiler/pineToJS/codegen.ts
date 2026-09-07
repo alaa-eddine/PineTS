@@ -35,6 +35,35 @@ export class CodeGenerator {
         this.functionParams = new Map();
     }
 
+    /**
+     * Pine Script treats `_` as a write-only discard identifier: it may be
+     * declared any number of times, in any scope, including several times in
+     * the same scope (`[_, s, _] = ...` followed by `[_, t, _] = ...`, or a
+     * plain `_ = expr` repeated). JavaScript forbids re-declaring a `let`/`var`
+     * binding in one scope, so every `_` declaration target is renamed to a
+     * fresh `_$N` placeholder. `$` is not a legal Pine identifier character,
+     * so the placeholders can never collide with user variables.
+     *
+     * Non-`_` duplicates inside one tuple (invalid Pine, but tolerated) fall
+     * back to a numeric suffix so the generated destructuring stays valid JS.
+     */
+    private renameDiscardTargets(elements: any[]) {
+        const seen = new Set<string>();
+        for (const el of elements) {
+            if (!el || el.type !== 'Identifier') continue;
+            if (el.name === '_') {
+                el.name = this.freshDiscardName();
+            } else if (seen.has(el.name)) {
+                el.name = `${el.name}${this.paramRenameCounter++}`;
+            }
+            seen.add(el.name);
+        }
+    }
+
+    private freshDiscardName(): string {
+        return `_$${this.paramRenameCounter++}`;
+    }
+
     generate(ast) {
         this.output = [];
         this.indent = 0;
@@ -657,6 +686,14 @@ export class CodeGenerator {
         for (let i = 0; i < node.declarations.length; i++) {
             const decl = node.declarations[i];
 
+            // Pine's `_` discard identifier may be re-declared freely; give each
+            // occurrence a unique JS name before any path below reads `decl.id`.
+            if (decl.id?.type === 'Identifier' && decl.id.name === '_') {
+                decl.id.name = this.freshDiscardName();
+            } else if (decl.id?.type === 'ArrayPattern') {
+                this.renameDiscardTargets(decl.id.elements);
+            }
+
             // Check if init is a complex if expression that needs statement-based generation
             if (decl.init && decl.init.type === 'ConditionalExpression' && decl.init.needsIIFE) {
                 // Generate: let varName;\n if (...) { varName = ... } else { varName = ... }
@@ -684,23 +721,9 @@ export class CodeGenerator {
             if (decl.id.type === 'Identifier') {
                 this.write(decl.id.name);
             } else if (decl.id.type === 'ArrayPattern') {
-                // Tuple destructuring — deduplicate discard placeholders like `_`
-                // Pine Script allows [a, _, _] but JS forbids duplicate names in destructuring
-                const seen = new Set<string>();
+                // Tuple destructuring (`_` targets already renamed above)
                 this.write('[');
-                for (let j = 0; j < decl.id.elements.length; j++) {
-                    let name = decl.id.elements[j].name;
-                    if (seen.has(name)) {
-                        const unique = `${name}${this.paramRenameCounter++}`;
-                        decl.id.elements[j].name = unique;
-                        name = unique;
-                    }
-                    seen.add(name);
-                    this.write(name);
-                    if (j < decl.id.elements.length - 1) {
-                        this.write(', ');
-                    }
-                }
+                this.write(decl.id.elements.map((el) => el.name).join(', '));
                 this.write(']');
             }
 
@@ -1096,22 +1119,10 @@ export class CodeGenerator {
                 if (decl.id.type === 'Identifier') {
                     this.write(decl.id.name);
                 } else if (decl.id.type === 'ArrayPattern') {
-                    // Destructuring: [a, b] — deduplicate discard placeholders
-                    const seen = new Set<string>();
+                    // Destructuring: [a, b] — rename `_` discard placeholders
+                    this.renameDiscardTargets(decl.id.elements);
                     this.write('[');
-                    for (let i = 0; i < decl.id.elements.length; i++) {
-                        let name = decl.id.elements[i].name;
-                        if (seen.has(name)) {
-                            const unique = `${name}${this.paramRenameCounter++}`;
-                            decl.id.elements[i].name = unique;
-                            name = unique;
-                        }
-                        seen.add(name);
-                        this.write(name);
-                        if (i < decl.id.elements.length - 1) {
-                            this.write(', ');
-                        }
-                    }
+                    this.write(decl.id.elements.map((el) => el.name).join(', '));
                     this.write(']');
                 }
 
