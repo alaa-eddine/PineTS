@@ -399,6 +399,26 @@ plot(pocDoubled, "pocDoubled")
         expect(plotAt(ctx, 'pocs', 5)).toBe(4);
         expect(plotAt(ctx, 'pocDoubled', 2)).toBe(120);
     });
+
+    it('dispatches user methods on UNTYPED footprint / volume_row variables (static type inferred from the producing call)', async () => {
+        const ctx = await runPine(`//@version=6
+indicator("Footprint inference")
+method halfDelta(footprint f) => f.delta() / 2
+method rowRange(volume_row r) => r.up_price() - r.down_price()
+fp = request.footprint(2)
+float half = na
+float span = na
+if not na(fp)
+    half := fp.halfDelta()
+    poc = footprint.poc(fp)
+    span := poc.rowRange()
+plot(half, "half")
+plot(span, "span")
+`);
+        expect(plotAt(ctx, 'half', 2)).toBe(24);
+        expect(plotAt(ctx, 'span', 2)).toBe(1);
+        expect(plotAt(ctx, 'half', 0)).toBeNaN();
+    });
 });
 
 describe('request.footprint — live updates', () => {
