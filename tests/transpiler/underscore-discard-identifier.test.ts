@@ -175,6 +175,49 @@ plot(total, "t")
         expect(t[t.length - 1]).toBe(6);
     });
 
+    // TradingView: "A value assigned to such a variable cannot be accessed."
+    // Reading `_` is a compile error on TV (`Undeclared identifier "_"`).
+    // PineTS surfaces every undeclared identifier as a ReferenceError at run
+    // time; `_` must behave the same way and never silently resolve to one of
+    // the discarded values.
+    describe('`_` is write-only: reading it fails like any undeclared identifier', () => {
+        it('plot(_) after a tuple declaration', async () => {
+            await expect(
+                newPineTS().run(`
+//@version=5
+indicator("t")
+[_, s1, _] = ta.macd(close, 12, 26, 9)
+plot(_, "u")
+`)
+            ).rejects.toThrow(/_ is not defined/);
+        });
+
+        it('`_` used in an expression after a plain declaration', async () => {
+            await expect(
+                newPineTS().run(`
+//@version=5
+indicator("t")
+_ = ta.sma(close, 10)
+x = _ + 1
+plot(x, "x")
+`)
+            ).rejects.toThrow(/_ is not defined/);
+        });
+
+        it('`_` read inside a user function body', async () => {
+            await expect(
+                newPineTS().run(`
+//@version=5
+indicator("t")
+f() =>
+    [_, a, _] = ta.macd(close, 12, 26, 9)
+    a + _
+plot(f(), "r")
+`)
+            ).rejects.toThrow(/_ is not defined/);
+        });
+    });
+
     it('generated JS never contains a bare `_` declaration', () => {
         const out = pineToJS(`//@version=5
 indicator("t")
