@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import type { Kline } from './types';
+import type { FootprintBar, Kline } from './types';
 
 // ── Provider configuration types ────────────────────────────────────────
 
@@ -86,8 +86,28 @@ export type ISymbolInfo = {
  * Use `computeSessionClose()` from `types.ts` for session-aware computation,
  * or the Alpaca Calendar API for exact per-day close times including early closes.
  */
-export interface IProvider {
+export interface IProvider extends Partial<IFootprintProvider> {
     getMarketData(tickerId: string, timeframe: string, limit?: number, sDate?: number, eDate?: number): Promise<Kline[]>;
     getSymbolInfo(tickerId: string): Promise<ISymbolInfo>;
     configure(config: any): void;
+}
+
+/**
+ * Optional order-flow surface a provider may implement next to {@link IProvider}.
+ * It backs Pine's `request.footprint()`: the engine asks for the per-bar footprints
+ * of the chart series with the SAME `(tickerId, timeframe, limit, sDate, eDate)`
+ * vocabulary as `getMarketData` — one call for the loaded history, then tail
+ * calls from the forming bar's `openTime` whenever the market data changes.
+ *
+ * Bars the source cannot serve (no order-flow coverage, still pending) are simply
+ * omitted from the result; the script sees `na` for them. A provider without this
+ * method makes `request.footprint()` return `na` on every bar.
+ */
+export interface IFootprintProvider {
+    getFootprintData(tickerId: string, timeframe: string, limit?: number, sDate?: number, eDate?: number): Promise<FootprintBar[]>;
+}
+
+/** Narrow a market data source to its optional footprint surface. */
+export function hasFootprintData(source: unknown): source is IFootprintProvider {
+    return source != null && !Array.isArray(source) && typeof (source as Partial<IFootprintProvider>).getFootprintData === 'function';
 }

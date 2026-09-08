@@ -327,14 +327,28 @@ export function preProcessUdtRegistry(ast: any, scopeManager: ScopeManager): voi
 const BUILTIN_INSTANCE_NAMESPACES = new Set(['table', 'line', 'label', 'box', 'linefill', 'polyline', 'array', 'matrix', 'map']);
 
 /**
+ * Built-in calls that RETURN an instance of another built-in type without being
+ * its constructor — the only way to obtain `footprint` / `volume_row` ids. Keyed
+ * by `namespace.method`, valued by the produced BASE type name.
+ */
+const BUILTIN_PRODUCER_TYPES: Record<string, string> = {
+    'request.footprint': 'footprint',
+    'footprint.poc': 'volume_row',
+    'footprint.vah': 'volume_row',
+    'footprint.val': 'volume_row',
+    'footprint.get_row_by_price': 'volume_row',
+};
+
+/**
  * Inspect an initializer expression and return the built-in BASE type name
  * ('table', 'array', ...) when it unambiguously constructs a built-in
  * instance — otherwise undefined. Mirrors `inferUdtTypeFromInit` for
  * built-in receivers.
  *
  * Recognized shapes: `<ns>.new(...)`, `<ns>.copy(...)`, `<ns>.from(...)`,
- * `<ns>.new_<type>(...)` (array typed constructors), plus ternaries where
- * both branches resolve to the same type.
+ * `<ns>.new_<type>(...)` (array typed constructors), the producer calls in
+ * `BUILTIN_PRODUCER_TYPES`, plus ternaries where both branches resolve to the
+ * same type.
  */
 function inferBuiltinTypeFromInit(init: any): string | undefined {
     if (!init) return undefined;
@@ -344,13 +358,15 @@ function inferBuiltinTypeFromInit(init: any): string | undefined {
         init.callee?.type === 'MemberExpression' &&
         !init.callee.computed &&
         init.callee.object?.type === 'Identifier' &&
-        init.callee.property?.type === 'Identifier' &&
-        BUILTIN_INSTANCE_NAMESPACES.has(init.callee.object.name)
+        init.callee.property?.type === 'Identifier'
     ) {
+        const namespace = init.callee.object.name;
         const method = init.callee.property.name;
-        if (method === 'new' || method === 'copy' || method === 'from' || method.startsWith('new_')) {
-            return init.callee.object.name;
+        if (BUILTIN_INSTANCE_NAMESPACES.has(namespace) && (method === 'new' || method === 'copy' || method === 'from' || method.startsWith('new_'))) {
+            return namespace;
         }
+        const produced = BUILTIN_PRODUCER_TYPES[`${namespace}.${method}`];
+        if (produced) return produced;
     }
 
     if (init.type === 'ConditionalExpression') {
