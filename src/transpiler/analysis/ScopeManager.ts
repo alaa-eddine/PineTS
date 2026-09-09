@@ -587,7 +587,14 @@ export class ScopeManager {
      *   [2+] = inner scopes (if-blocks, loops, etc.)
      */
     addOuterHoistedStatement(stmt: any): void {
-        if (this.hoistingStack.length > 0 && !this.suppressHoisting) {
+        // Deliberately ignores `suppressHoisting`: that flag keeps calls inline
+        // in positions where they must be evaluated conditionally (while-loop
+        // tests, lazy `?:` / `and` / `or` operands). Built-in TA *variables*
+        // (ta.tr, ta.obv, ...) are the opposite case — they must run on every
+        // bar regardless of where they are referenced — so they always go to
+        // the script body scope. Dropping the statement here would leave the
+        // generated code referencing an undeclared `temp_N`.
+        if (this.hoistingStack.length > 0) {
             const targetIndex = Math.min(1, this.hoistingStack.length - 1);
             this.hoistingStack[targetIndex].push(stmt);
         }

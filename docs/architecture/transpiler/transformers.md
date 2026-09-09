@@ -43,4 +43,5 @@ Handles expressions, primarily function calls and binary operations.
     1. Calculate SMA -> temp var.
     2. Calculate EMA using temp var.
     This simplifies the generated code and ensures proper order of operations for stateful functions.
+*   **Lazy operands (no hoisting)**: Pine evaluates `?:` branches lazily in every version, and the right operand of `and` / `or` lazily from v6 (v5 is strict). Hoisting a call out of such a position would run it unconditionally — `size(a) > 0 ? array.get(a, 0) : na` would throw on an empty array, and a `ta.*` call in an untaken branch would execute on every bar. `analysis/LazyOperandPass.ts` tags nodes in lazy positions with `_lazyOperand`; `transformCallExpression` then keeps those calls inline (hoisting suppressed for the call and its arguments) and the expression walkers stop descending into them (`isInlinedLazyCall`). Built-in TA *variables* (`ta.tr`, `ta.obv`, …) are the exception and are still hoisted to the script body via `addOuterHoistedStatement`, because they must run on every bar regardless of position.
 

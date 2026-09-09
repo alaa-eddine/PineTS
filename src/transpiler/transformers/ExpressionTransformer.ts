@@ -928,6 +928,8 @@ function getParamFromConditionalExpression(node: any, scopeManager: ScopeManager
                 // First transform the call expression itself
                 transformCallExpression(node, scopeManager);
 
+                if (isInlinedLazyCall(node)) return;
+
                 // Then transform its arguments with the correct context
                 node.arguments.forEach((arg: any) => c(arg, { parent: node, inNamespaceCall: isNamespaceCall || state.inNamespaceCall }));
             },
@@ -1417,12 +1419,47 @@ function resolveCalleeObject(node: any, parentNode: any, scopeManager: ScopeMana
     }
 }
 
+/**
+ * True when `transformCallExpression` kept a lazy-operand call inline (see
+ * LazyOperandPass). Such a node is fully transformed — callee and arguments
+ * included — and, unlike an eager call, was NOT replaced by a hoisted
+ * `temp_N` identifier. Expression walkers that descend into a call's callee /
+ * arguments after transforming it must stop here, otherwise they re-run
+ * `transformMemberExpression` on `ns.method` / `ns.param` callees and turn
+ * them into bogus `ns.method()(...)` auto-calls.
+ */
+export function isInlinedLazyCall(node: any): boolean {
+    return !!node && node.type === 'CallExpression' && node._transformed === true && node._lazyOperand === true;
+}
+
 export function transformCallExpression(node: any, scopeManager: ScopeManager, namespace?: string): void {
     // Skip if this node has already been transformed
     if (node._transformed) {
         return;
     }
 
+    // Calls sitting in a lazy operand (`?:` branch, or the right side of a
+    // lazy `and`/`or` — see LazyOperandPass) must stay inline: hoisting them
+    // into a `const temp_N = ...` ahead of the statement would evaluate them
+    // unconditionally, e.g. running `array.get(a, 0)` even when the guard
+    // `array.size(a) > 0` is false, or executing a stateful `ta.*` call on
+    // bars where TradingView would skip it. Suppressing hoisting for the
+    // duration of this call (arguments included) keeps every generated
+    // `ns.param(...)` / nested call inside the branch expression.
+    if (node._lazyOperand === true && !scopeManager.shouldSuppressHoisting()) {
+        scopeManager.setSuppressHoisting(true);
+        try {
+            transformCallExpressionInner(node, scopeManager, namespace);
+        } finally {
+            scopeManager.setSuppressHoisting(false);
+        }
+        return;
+    }
+
+    transformCallExpressionInner(node, scopeManager, namespace);
+}
+
+function transformCallExpressionInner(node: any, scopeManager: ScopeManager, namespace?: string): void {
     if (node.callee && node.callee.name === 'kernel_matrix') {
         // console.log('Transforming kernel_matrix call');
         // console.log('Arguments before:', node.arguments.map((a: any) => a.name));

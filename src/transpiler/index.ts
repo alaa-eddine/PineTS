@@ -54,6 +54,7 @@ import { normalizeNativeImports } from './transformers/NormalizationTransformer'
 import { wrapInContextFunction } from './transformers/WrapperTransformer';
 import { transformNestedArrowFunctions, preProcessContextBoundVars, preProcessUdtRegistry, runAnalysisPass } from './analysis/AnalysisPass';
 import { runTypeInferencePass } from './analysis/TypeInferencePass';
+import { markLazyOperands } from './analysis/LazyOperandPass';
 import { runTransformationPass, transformEqualityChecks, propagateAsyncAwait } from './transformers/MainTransformer';
 import { extractPineScriptVersion, pineToJS } from './pineToJS/pineToJS.index';
 import { buildLtfSlices } from './slicing/buildLtfSlices';
@@ -146,6 +147,14 @@ export function transpile(source: string | Function, options: { debug: boolean; 
     if (pineVersion !== null && pineVersion < 6) {
         runTypeInferencePass(ast, scopeManager);
     }
+
+    // Lazy operands: tag nodes inside `?:` branches (every version) and the
+    // right operand of `and`/`or` (Pine v6+, and JS `&&`/`||` for PineTS
+    // syntax) so the call transformer keeps their namespace calls inline
+    // instead of hoisting them into unconditional temps. Pine v5 evaluates
+    // `and`/`or` strictly (see TradingView's v6 migration guide, "Lazy
+    // evaluation of conditions"), so v5 keeps the eager right operand.
+    markLazyOperands(ast, { lazyLogical: pineVersion === null || pineVersion >= 6 });
 
     // Second pass: transform the code
     runTransformationPass(ast, scopeManager, originalParamName, options, sourceLines);

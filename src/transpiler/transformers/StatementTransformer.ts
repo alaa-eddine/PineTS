@@ -8,6 +8,7 @@ import { NAMESPACES_LIKE, FACTORY_METHODS } from '../settings';
 import {
     transformIdentifier,
     transformCallExpression,
+    isInlinedLazyCall,
     transformMemberExpression,
     transformArrayIndex,
     addArrayAccess,
@@ -203,7 +204,7 @@ export function transformAssignmentExpression(node: any, scopeManager: ScopeMana
                 // First transform the call expression itself
                 transformCallExpression(node, scopeManager);
 
-                if (node.type !== 'CallExpression') return;
+                if (node.type !== 'CallExpression' || isInlinedLazyCall(node)) return;
 
                 // Traverse the callee if it's a MemberExpression (to handle obj.method())
                 if (node.callee.type === 'MemberExpression') {
@@ -406,7 +407,7 @@ export function transformVariableDeclaration(varNode: any, scopeManager: ScopeMa
 
                             transformCallExpression(node, scopeManager);
 
-                            if (node.type !== 'CallExpression') return;
+                            if (node.type !== 'CallExpression' || isInlinedLazyCall(node)) return;
 
                             // Traverse the callee if it's a MemberExpression (to handle obj.method())
                             if (node.callee.type === 'MemberExpression') {
@@ -514,6 +515,24 @@ export function transformVariableDeclaration(varNode: any, scopeManager: ScopeMa
                                 });
                                 node.body.body = newBody;
                             }
+                        },
+                        BlockStatement(node: any, state: any, c: any) {
+                            // Nested blocks inside an IIFE (the `if`/`else` bodies that a Pine
+                            // `switch` or multi-line `if` expression compiles to) need their own
+                            // per-statement hoisting scope, exactly like the IIFE body above and
+                            // the BlockStatement handlers of the return-statement / arrow-body
+                            // walkers. Without it, `if (c) { return array.get(a, 0) }` hoists the
+                            // `array.get` temp to the IIFE body, ahead of the `if`, so the untaken
+                            // branch is evaluated anyway (and throws on an empty array).
+                            const newBody: any[] = [];
+                            node.body.forEach((stmt: any) => {
+                                scopeManager.enterHoistingScope();
+                                c(stmt, { ...state, parent: node });
+                                const hoistedStmts = scopeManager.exitHoistingScope();
+                                newBody.push(...hoistedStmts);
+                                newBody.push(stmt);
+                            });
+                            node.body = newBody;
                         },
                         SwitchStatement(node: any, state: any, c: any) {
                             // Traverse discriminant and all cases
